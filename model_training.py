@@ -398,7 +398,7 @@ def lr(x_train, y_train, **kwargs):
                 model_summary_output = model_summary_output.join(kwargs['vif'])
                 model_summary_output.to_csv(kwargs['model_summary_file'])
         except:
-            raise ValueError('Params \'print\', \'equation_file\' and \'model_summary_file\' are needed')
+            raise Exception('Params \'print\', \'equation_file\' and \'model_summary_file\' are needed')
 
     return clf
 

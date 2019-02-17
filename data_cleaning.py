@@ -159,7 +159,7 @@ class DATA_FILTER(object):
             return df.apply(pd.to_numeric, errors='ignore')
 
         except:
-            raise ValueError("Some columns to drop are not in the dataframe")
+            raise Exception("Failed to drop columns")
 
     def ud_fit_transform(self, df):
         """

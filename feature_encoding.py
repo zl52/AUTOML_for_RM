@@ -791,8 +791,8 @@ class UD_FEATURE_ENCODER():
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except:
-                raise ValueError("Recoding statement is incorrect")
+            except Exception as e:
+                print(e)
 
         elif str(type(encodr)) == '<class \'feature_encoding.UD_NaEncoder\'>':
             try:
@@ -805,8 +805,8 @@ class UD_FEATURE_ENCODER():
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except:
-                raise ValueError("Recoding statement is incorrect")
+            except Exception as e:
+                print(e)
 
         elif encodr.x_dtypes == 'cov':
             try:
@@ -830,8 +830,8 @@ class UD_FEATURE_ENCODER():
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except:
-                raise ValueError("Recoding statement is incorrect")
+            except Exception as e:
+                print(e)
 
         elif encodr.x_dtypes == 'cav':
             try:
@@ -860,8 +860,8 @@ class UD_FEATURE_ENCODER():
                     # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except:
-                raise ValueError("Recoding statement is incorrect")
+            except Exception as e:
+                print(e)
 
     def ud_fit(self, df, label, WoeEncoder_feat=[], BinEncoder_feat=[], CountEncoder_feat=[],
                OneHotEncoder_feat=[], TargetEncoder_feat=[], NaEncoder_feat=[], exclude_list=[]):
@@ -896,7 +896,7 @@ class UD_FEATURE_ENCODER():
                     self.final_WoeEncoder_feat += [i]
 
                 except:
-                    raise ValueError("Failed to apply WoeEncoder")
+                    raise Exception("Failed to apply WoeEncoder")
 
             for i in cov_list:
                 try:
@@ -907,7 +907,7 @@ class UD_FEATURE_ENCODER():
                     self.final_WoeEncoder_feat += [i]
 
                 except:
-                    raise ValueError("Failed to apply WoeEncoder")
+                    raise Exception("Failed to apply WoeEncoder")
 
         if WoeEncoder_feat != [] and not self.use_woe_encoder:
             for i in WoeEncoder_feat:
@@ -920,7 +920,7 @@ class UD_FEATURE_ENCODER():
                         self.final_WoeEncoder_feat += [i]
 
                     except:
-                        raise ValueError("Failed to apply WoeEncoder")
+                        raise Exception("Failed to apply WoeEncoder")
 
                 else:
                     try:
@@ -931,7 +931,7 @@ class UD_FEATURE_ENCODER():
                         self.final_WoeEncoder_feat += [i]
 
                     except:
-                        raise ValueError("Failed to apply WoeEncoder")
+                        raise Exception("Failed to apply WoeEncoder")
 
         for i in BinEncoder_feat:
             try:
@@ -942,7 +942,7 @@ class UD_FEATURE_ENCODER():
                 self.final_BinEncoder_feat += [i]
 
             except:
-                raise ValueError("Failed to apply BinEncoder")
+                raise Exception("Failed to apply BinEncoder")
 
         for i in CountEncoder_feat:
             try:
@@ -953,7 +953,7 @@ class UD_FEATURE_ENCODER():
                 self.final_CountEncoder_feat += [i]
 
             except:
-                raise ValueError("Failed to apply CountEncoder")
+                raise Exception("Failed to apply CountEncoder")
 
         for i in OneHotEncoder_feat:
             try:
@@ -964,7 +964,7 @@ class UD_FEATURE_ENCODER():
                 self.final_OneHotEncoder_feat += [i]
 
             except:
-                raise ValueError("Failed to apply OneHotEncoder")
+                raise Exception("Failed to apply OneHotEncoder")
 
         for i in TargetEncoder_feat:
             try:
@@ -975,7 +975,7 @@ class UD_FEATURE_ENCODER():
                 self.final_TargetEncoder_feat += [i]
 
             except:
-                raise ValueError("Failed to apply TargetEncoder")
+                raise Exception("Failed to apply TargetEncoder")
 
         for i in NaEncoder_feat:
             try:
@@ -986,7 +986,7 @@ class UD_FEATURE_ENCODER():
                 self.final_NaEncoder_feat += [i]
 
             except:
-                raise ValueError("Failed to apply NaEncoder")
+                raise Exception("Failed to apply NaEncoder")
 
     def ud_transform(self, df, label=None, exclude_list=[], write=False):
         """

@@ -94,8 +94,10 @@ class UD_TRIMMER():
                             key = list(self.feat_dict.keys())[list(self.feat_dict.values()).index(ori_name)]
                             self.feat_dict.update({key: ori_name})
                             self.recoding_dict[key] += recoding_statement
-                    except:
-                        print("Can\'t trim feature", ori_name)
+
+                    except Exception as e:
+                        print("Can\'t trim feature ", ori_name, " due to ", e)
+
                 else:
                     pass
         else:

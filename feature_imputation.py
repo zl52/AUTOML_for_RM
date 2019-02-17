@@ -123,32 +123,27 @@ class UD_IMPUTER(Imputer):
                     try:
                         self.ud_fit(df[i], y=None, strategy='mean', prefix=i)
                     except:
-                        print(i)
-                        raise ValueError("Failed to impute using mean method")
+                    print("Failed to impute ", i, " using mean method")
 
             for i in mean_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='mean', prefix=i)
 
                 except:
-                    print(i)
-                    raise ValueError("Failed to impute using mean method")
+                    print("Failed to impute ", i, " using mean method")
 
             for i in median_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='median', prefix=i)
 
                 except:
-                    print(i)
-                    raise ValueError("Failed to impute using median method")
+                    print("Failed to impute ", i, " using median method")
 
             for i in most_freq_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='most_frequent', prefix=i)
 
-                except:
-                    print(i)
-                    raise ValueError("Failed to impute using most_frequent method")
+                    print("Failed to impute ", i, " using most_frequent method")
 
             for i in exclude_list:
                 self.ud_fit(df[i], y=None, strategy='nothing', prefix=i)

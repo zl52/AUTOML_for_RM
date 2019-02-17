@@ -35,7 +35,7 @@ def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by
     """
     if method == 'oot':
         if (dt_col is None) | (uid is None):
-            raise ValueError("Valid dt_col indicating datetime and uid indicating unique key are needed")
+            raise Exception("Valid dt_col indicating datetime and uid indicating unique key are needed")
 
         df = df.sort_values(dt_col, ascending=False)
 
@@ -72,5 +72,5 @@ def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by
         return train, train_y, val, val_y
 
     else:
-        raise Exception('method {method} is not defined.'.format(method=method),
+        raise ValueError('method {method} is not defined.'.format(method=method),
                         ' Must chosen between \'random\' and \'oot\'')

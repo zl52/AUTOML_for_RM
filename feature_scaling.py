@@ -116,7 +116,8 @@ class UD_SCALER():
                     df[col] = self.scalr.transform(df[col])
 
                 except:
-                    raise ValueError("Scaling process incur error")
+                    raise Exception("Failed to scale features")
+
             else:
                 pass
 

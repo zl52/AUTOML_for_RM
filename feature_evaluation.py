@@ -52,7 +52,7 @@ def get_iv(df, target=TARGET, trimmr=None, cav_list_appd=[], cov_list_appd=[], e
             df_copy = trimmr.ud_transform(df_copy)
 
         except:
-            raise ValueError("The trimmer is not valid")
+            raise Exception("The trimmer is not valid")
 
     if type(target) == str:
         target = [target]
