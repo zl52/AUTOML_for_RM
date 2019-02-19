@@ -9,7 +9,7 @@ from tools import *
 ####################################################################################################
 ####################################################################################################
 ######################################                        ######################################
-###################################### 9. FEATURE IMPUTATION  ######################################
+###################################### 8. FEATURE IMPUTATION  ######################################
 ######################################                        ######################################
 ####################################################################################################
 ####################################################################################################
@@ -110,7 +110,7 @@ class UD_IMPUTER(Imputer):
         : param most_freq_list: list of features to be imputed using most frequent value
         : param exclude_list: list of features kept the same
         """
-        feat_not_meanimp = mean_list + median_list + most_freq_list
+        feat_not_meanimp = median_list + most_freq_list
         df = df.apply(pd.to_numeric, errors='ignore').reset_index(drop=True)
         col_idx = df.select_dtypes(include=[float, int, 'int64']).isnull().sum() \
             [df.select_dtypes(include=[float, int, 'int64']).isnull().sum() != 0].index
@@ -123,34 +123,39 @@ class UD_IMPUTER(Imputer):
                     try:
                         self.ud_fit(df[i], y=None, strategy='mean', prefix=i)
                     except:
-                    print("Failed to impute ", i, " using mean method")
+                        print(i)
+                        raise ValueError("Failed to impute using mean method")
 
             for i in mean_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='mean', prefix=i)
 
                 except:
-                    print("Failed to impute ", i, " using mean method")
+                    print(i)
+                    raise ValueError("Failed to impute using mean method")
 
             for i in median_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='median', prefix=i)
 
                 except:
-                    print("Failed to impute ", i, " using median method")
+                    print(i)
+                    raise ValueError("Failed to impute using median method")
 
             for i in most_freq_list:
                 try:
                     self.ud_fit(df[i], y=None, strategy='most_frequent', prefix=i)
 
-                    print("Failed to impute ", i, " using most_frequent method")
+                except:
+                    print(i)
+                    raise ValueError("Failed to impute using most_frequent method")
 
             for i in exclude_list:
                 self.ud_fit(df[i], y=None, strategy='nothing', prefix=i)
 
         else:
-            for i in col:
-                self.ud_fit(self, df[i], y=None, strategy='nothing', prefix=i)
+            for i in col + feat_not_meanimp:
+                self.ud_fit(df[i], y=None, strategy='nothing', prefix=i)
 
     def ud_transform_all(self, df, label, action=False, exclude_list=[], write=False):
         """
@@ -173,7 +178,7 @@ class UD_IMPUTER(Imputer):
             for i in col:
                 try:
                     if i not in exclude_list:
-                        df[i] = self.ud_transform(self, df[i], prefix=i, write=write)
+                        df[i] = self.ud_transform(df[i], prefix=i, write=write)
 
                     else:
                         pass
@@ -202,7 +207,7 @@ class UD_IMPUTER(Imputer):
 
         : return x: imputed dataframe
         """
-        self.ud_fit_all(df, label, mean_list=mean_list, median_list=median_list,
+        self.ud_fit_all(df, label, action=action, mean_list=mean_list, median_list=median_list,
                         most_freq_list=most_freq_list, exclude_list=exclude_list)
 
         return self.ud_transform_all(df, label, action=action, exclude_list=exclude_list, write=write)

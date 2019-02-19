@@ -373,7 +373,7 @@ def gnb(x_train, y_train):
 def lr(x_train, y_train, **kwargs):
     x_train['intercept'] = 1
     logisticregression = sm.Logit(y_train, x_train)
-
+  
     clf = logisticregression.fit(disp=False)
     model_summary = clf.summary2(alpha=0.05)
     print(model_summary)
@@ -396,9 +396,9 @@ def lr(x_train, y_train, **kwargs):
                 model_summary_output['T_value'] = clf.tvalues
                 model_summary_output['P_value'] = clf.pvalues
                 model_summary_output = model_summary_output.join(kwargs['vif'])
-                model_summary_output.to_csv(kwargs['model_summary_file'])
+                model_summary_output.to_excel(kwargs['model_summary_file'], index = None)
         except:
-            raise Exception('Params \'print\', \'equation_file\' and \'model_summary_file\' are needed')
+            raise ValueError('Params \'print\', \'equation_file\' and \'model_summary_file\' are needed')
 
     return clf
 

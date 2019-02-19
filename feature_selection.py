@@ -102,7 +102,7 @@ class FEATURE_FILTER(object):
             return df.apply(pd.to_numeric, errors='ignore')
 
         except:
-            raise Exception("Failed to filter features")
+            raise ValueError("Some columns to drop are not in the dataframe")
 
     def ud_iv_filter_fit_transform(self, df, cov_list_appd=[], cav_list_appd=[], iv_floor=0.02, iv_cap=1,
                                    trimmr=None, bins=10, woe_min=-20, woe_max=20, **kwargs):
@@ -145,9 +145,8 @@ class FEATURE_FILTER(object):
 
         with HiddenPrints():
             if df_va is None:
-                x_train, y_train, x_val, y_val = SAMPLE_SPLITTER(df[feat], label, dt_col=None, uid=None,
-                                                                 method='random', random_state=random_state,
-                                                                 drop_dt_col=False)
+                x_train, y_train, x_val, y_val = SAMPLE_SPLITTER(df[feat], label, dt_col=None, method='random',
+                                                                 random_state=random_state, drop_dt_col=False)
 
             else:
                 x_train, y_train, x_val, y_val = df[feat].drop([label], axis=1), df[label], \
@@ -175,7 +174,7 @@ class FEATURE_FILTER(object):
             return df
 
         except:
-            raise Exception("Failed to filter features")
+            raise ValueError("Some columns to keep are not in the dataframe")
 
     def ud_xgbfi_filter_fit_transform(self, df, label, df_va=None, xgb_params=XGB_PARAMS, alpha=0.7, top=20,
                                       random_state=2019):
@@ -236,7 +235,7 @@ class FEATURE_FILTER(object):
             return df
 
         except:
-            raise Exception("Failed to filter features")
+            raise ValueError("Some columns to keep are not in the dataframe")
 
     def ud_rffi_filter_fit_transform(self, df, label, top=20, **kwargs):
         """
@@ -265,7 +264,7 @@ class FEATURE_FILTER(object):
         """
         feat_left = list(set(df.columns.tolist()) - set(self.exclude_list + [label]))
         if sum(df[feat_left].dtypes == object) != 0:
-            raise Exception("LR model can't deal with categorical features")
+            raise ValueError("LR model can't deal with categorical features")
 
         self.lr_important_feat = []
         score, best_score = 0, 0
@@ -316,7 +315,7 @@ class FEATURE_FILTER(object):
             return df
 
         except:
-            raise Exception("Failed to filter features")
+            raise ValueError("Some selected columns are not in the dataframe")
 
     def ud_lr_filter_fit_transform(self, df, label, feat_cnt, alpha=0.05, stepwise=True):
         """

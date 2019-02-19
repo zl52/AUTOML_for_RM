@@ -92,8 +92,32 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
     """
     df = na_detection(df)
     col = [i for i in (set(df.columns) - set(target))]
+    cav_list = [i for i in col if i in df.select_dtypes(include=[object])]
+    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object])]
 
-    stat = df[col].describe().T.assign( \
+    try:
+        stat_cov = df[cov_list].describe().T
+        col_name = stat_cov.columns.tolist()
+        col_name.insert(4, '1%')
+        col_name.insert(8, '99%')
+        stat_cov['1%'] = df[stat_cov.index.tolist()].apply(lambda x: x.quantile(0.01), axis=0)
+        stat_cov['99%'] = df[stat_cov.index.tolist()].apply(lambda x: x.quantile(0.99), axis=0)
+        stat_cov = stat_cov.reindex(columns=col_name)
+
+    except:
+        stat_cov = pd.DataFrame()
+        print('There are no continous variables or quantiles failed to calculate')
+
+
+    try:
+        stat_cav = df[cav_list].describe().T.drop(['freq', 'top', 'unique'],axis=1)
+
+    except:
+        stat_cav = pd.DataFrame()
+        print('There are no categorical variables')
+
+    stat = pd.concat([stat_cov, stat_cav], axis=0)
+    stat = stat.assign( \
         missing_cnt=df[col].apply(lambda x: len(x) - x.count(), axis=0),
         missing_rate=df[col].apply(lambda x: (len(x) - x.count()) / len(x), axis=0),
         coverage_count=df[col].apply(lambda x: x.count(), axis=0),
@@ -106,12 +130,6 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
         HF_value_pct=df[col].apply(lambda x: x.value_counts().iloc[0] / len(x) \
             if x.count() != 0 else np.nan, axis=0))
 
-    col_name = stat.columns.tolist()
-    col_name.insert(4, '1%')
-    col_name.insert(8, '99%')
-    stat['1%'] = df[stat.index.tolist()].apply(lambda x: x.quantile(0.01), axis=0)
-    stat['99%'] = df[stat.index.tolist()].apply(lambda x: x.quantile(0.99), axis=0)
-    stat = stat.reindex(columns=col_name)
     stat['count'] = stat['count'].astype(int)
 
     if ratio_pct:
@@ -127,6 +145,7 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
         print("Generate each feature\'s descriptive statistical summary, including missing count,",
               "missing rate, \n coverage count, coverage rate, unique values count, high-frequency",
               "value, high-frequency value's count, high-frequency value's\n probability of occurrence")
+        print('\n' + '_' * 120 + ' \n')
 
     return stat
 

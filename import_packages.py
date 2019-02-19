@@ -104,3 +104,5 @@ from IPython.core.interactiveshell import InteractiveShell
 
 InteractiveShell.ast_node_interactivity = "all"
 warnings.filterwarnings("ignore")
+pd.set_option('max_rows', 500)
+pd.set_option('max_columns', 200)

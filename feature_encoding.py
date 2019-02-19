@@ -14,7 +14,7 @@ from tools import *
 ####################################################################################################
 ####################################################################################################
 ######################################                        ######################################
-######################################   8. FEATURE ENCODING  ######################################
+######################################   7. FEATURE ENCODING  ######################################
 ######################################                        ######################################
 ####################################################################################################
 ####################################################################################################
@@ -142,7 +142,7 @@ def woe(x, y, woe_min=-20, woe_max=20):
     neg = (y == 0).sum()
     dmap, pp_map, np_map = {}, {}, {}
 
-    for k in np.unique(x):
+    for k in pd.Series(x).unique():
         indice = np.where(x == k)[0]
         pos_prop = (y[indice] == 1).sum() / pos
         neg_prop = (y[indice] == 0).sum() / neg
@@ -280,7 +280,7 @@ class UD_OneHotEncoder(OneHotEncoder):
         onehot.fit(x.reshape(-1, 1))
         self.encoder = onehot
         self.active_features_ = onehot.active_features_
-        self.feat_name = [prefix + '_' + str(self.dmap[i]) for i in self.active_features_]
+        self.feat_name = [prefix + '_' + str(self.dmap[i] + '_oe') for i in self.active_features_]
 
     def ud_transform(self, x):
         """
@@ -317,7 +317,7 @@ class UD_CountEncoder(object):
     Mapping relations are stored in dmap
     """
 
-    def __init__(self, base_value=1, use_log_transform=False, smoothing_param=1, unknown='<NA>*'):
+    def __init__(self, base_value=1, use_log_transform=False, smoothing_param=1):
         """
         : param x_dtypes: types of input feature x, can be 'cat' or 'cov', representing
                           'categorical feature' and 'continuous feature respectively'
@@ -330,7 +330,7 @@ class UD_CountEncoder(object):
         self.base_value = base_value
         self.use_log_transform = use_log_transform
         self.smoothing_param = 1
-        self.unknown = unknown
+        self.unknown='<NA>*'
 
     def ud_fit(self, x, y=None, prefix=''):
         """
@@ -345,7 +345,7 @@ class UD_CountEncoder(object):
         self.feat_name = prefix + '_ce'
         self.dmap.update({'<UNSEEN>*': self.base_value})
         if not self.unknown in self.dmap.keys():
-            self.dmap.update({'<UNSEEN>*': self.base_value})
+            self.dmap.update({self.unknown: self.base_value})
 
     def ud_transform(self, x):
         """
@@ -385,16 +385,16 @@ class UD_BinEncoder(object):
     Mapping relations are stored in dmap
     """
 
-    def __init__(self, bins=10, cut_method='dt', labels=None, interval=True, unknown='np.nan',
-                 **kwargs):
+    def __init__(self, bins=10, cut_method='dt', labels=None, interval=True, **kwargs):
         """
         : param x_dtypes: types of input feature x, can be 'cat' or 'cov', representing
                           'categorical feature' and 'continuous feature respectively'
         : param bins: number of bins
         : param cut_method: cut method ('cut'(defualt), 'qcut' or 'dt')
         : param labels: category names for bins
-        : param interval: if interval is True, param labels is deactivated.
+        : param interval: if interval is True, param labels is deactivated
         : param unknown: string or value used to denote NA
+        : param base_value: value when it occurs unseen case 
         : param kwargs: params for decision tree.
         """
         self.x_dtypes = 'cov'
@@ -402,7 +402,8 @@ class UD_BinEncoder(object):
         self.labels = labels
         self.interval = interval
         self.cut_method = cut_method
-        self.unknown = unknown
+        self.unknown = '<NA>*'
+        self.base_value = 'np.nan'
         self.kwargs = kwargs
 
     def ud_fit(self, x, y=None, prefix=''):
@@ -424,7 +425,6 @@ class UD_BinEncoder(object):
         if self.interval and self.labels is None:
             self.labels = np.arange(len(self.cut_points) - 1)
             self.dmap = dict(zip(pd.cut(x, self.cut_points).unique().sort_values(), self.labels))
-            self.base_value = 'np.nan'
             self.dmap.update({'<UNSEEN>*': self.base_value})
             self.dmap.update({self.unknown: self.base_value})
 
@@ -465,7 +465,7 @@ class UD_WoeEncoder(object):
     """
 
     def __init__(self, x_dtypes, cut_method='dt', bins=10, woe_min=-20, woe_max=20, labels=None,
-                 unknown='<NA>*', **kwargs):
+                 **kwargs):
         """
         Fit transformer by checking x
 
@@ -476,6 +476,7 @@ class UD_WoeEncoder(object):
         : param woe_min: minimum of woe value
         : param woe_max: maximum of woe value
         : param unknown: string or value used to denote NA
+        : param base_value: value when it occurs unseen case 
         : param kwargs: params for decision tree
         """
         self.x_dtypes = x_dtypes
@@ -484,7 +485,8 @@ class UD_WoeEncoder(object):
         self.woe_min = woe_min
         self.woe_max = woe_max
         self.labels = labels
-        self.unknown = unknown
+        self.unknown = '<NA>*'
+        self.base_value = 0
         self.kwargs = kwargs
 
     def ud_fit(self, x, y, prefix=''):
@@ -498,11 +500,8 @@ class UD_WoeEncoder(object):
         if y is None:
             raise Exception('Encoder need valid y label.')
 
-        if self.x_dtypes == 'cov':
-            self.unknown = np.mean(x)
-        x = np.array(pd.Series(x).fillna(self.unknown))
-
         if self.cut_method is None:
+            x = np.array(pd.Series(x).fillna(self.unknown))
             if len(x) / len(np.unique(x)) > 10:
                 print('Cut method is None and the feature is {s}'.format(s=self.x_dtypes))
                 self.dmap, _, _ = woe(x, y, self.woe_min, self.woe_max)
@@ -514,29 +513,33 @@ class UD_WoeEncoder(object):
         else:
             if self.x_dtypes == 'cav':
                 self.cut_method = 'dt'
+                x = np.array(pd.Series(x).fillna(self.unknown))
                 self.dmap, _, _ = woe(x, y, self.woe_min, self.woe_max)
                 x_tmp = [self.dmap[i] for i in x]
                 self.cut_points = get_cut_points(x_tmp, y, self.bins, self.cut_method, **self.kwargs)
                 x_tmp = pd.cut(x_tmp, self.cut_points)
-                dmap2, _, _ = woe(x_tmp, y, self.woe_min, self.woe_max)
+                dmap2, pp_map2, np_map2 = woe(x_tmp, y, self.woe_min, self.woe_max)
 
                 for i in self.dmap.items():
                     self.dmap[i[0]] = dmap2[pd.cut([i[1]], self.cut_points)[0]]
+
+                self.iv = [sum([(pp_map2.get(i[0]) - np_map2.get(i[0])) * dmap2.get(i[0]) for i in dmap2.items()])]
 
             elif self.x_dtypes == 'cov':
                 be = UD_BinEncoder(self.bins, self.cut_method, self.labels, interval=False)
                 be.ud_fit(x, y, prefix)
                 x = be.ud_transform(x)
                 self.cut_points = be.cut_points
-                self.dmap, _, _ = woe(x, y, self.woe_min, self.woe_max)
+                x = np.array(pd.Series(x).fillna(self.unknown))
+                self.dmap, pp_map, np_map = woe(x, y, self.woe_min, self.woe_max)
+                self.iv = [sum([(pp_map.get(i[0]) - np_map.get(i[0])) * self.dmap.get(i[0]) for i in self.dmap.items()])]
 
             else:
                 raise ValueError("x_dtypes must chosen between \'nomi\' and \'cont\'")
 
-        self.base_value = 0
         self.dmap.update({'<UNSEEN>*': self.base_value})
         if not self.unknown in self.dmap.keys():
-            self.dmap.update({'<UNSEEN>*': self.base_value})
+            self.dmap.update({self.unknown: self.base_value})
 
         self.feat_name = prefix + '_we'
 
@@ -548,13 +551,12 @@ class UD_WoeEncoder(object):
 
         : return x: encoded feature, array-like of shape (n_samples,)
         """
-        x = np.array(pd.Series(x).fillna(self.unknown))
-
         if (self.cut_method is not None) & (self.x_dtypes == 'cov'):
             x = pd.cut(x, bins=self.cut_points)
 
+        x = pd.Categorical(x).add_categories(self.unknown).fillna(self.unknown)
         x = np.array([self.dmap[i] if i in self.dmap.keys() else self.base_value for i in x])
-
+        
         return x
 
     def ud_fit_transform(self, x, y=None, prefix=''):
@@ -579,7 +581,7 @@ class UD_TargetEncoder(object):
     mapping relations are stored in dmap
     """
 
-    def __init__(self, random_noise=0.005, smoothing_param=0.01, random_seed=10, unknown='<NA>*'):
+    def __init__(self, random_noise=0.005, smoothing_param=0.01, random_seed=10):
         """
         : param x_dtypes: types of input feature x, can be 'cat' or 'cov', representing
                           'categorical feature' and 'continuous feature respectively'
@@ -592,7 +594,7 @@ class UD_TargetEncoder(object):
         self.random_noise = random_noise
         self.smoothing_param = smoothing_param
         self.random_seed = random_seed
-        self.unknown = unknown
+        self.unknown = '<NA>*'
 
     def ud_fit(self, x, y, prefix=''):
         """
@@ -624,7 +626,7 @@ class UD_TargetEncoder(object):
 
         self.dmap.update({'<UNSEEN>*': self.base_value})
         if not self.unknown in self.dmap.keys():
-            self.dmap.update({'<UNSEEN>*': self.base_value})
+            self.dmap.update({self.unknown: self.base_value})
         self.feat_name = prefix + '_te'
 
     def ud_transform(self, x):
@@ -661,7 +663,7 @@ class UD_NaEncoder(object):
     mapping relations are stored in dmap
     """
 
-    def __init__(self, base_value=1, unknown='<NA>*'):
+    def __init__(self, base_value=1):
         """
         : param x_dtypes: types of input feature x, can be 'cat' or 'cov', representing
                           'categorical feature' and 'continuous feature respectively'
@@ -670,7 +672,7 @@ class UD_NaEncoder(object):
         """
         self.x_dtypes = 'cav'
         self.base_value = base_value
-        self.unknown = unknown
+        self.unknown = '<NA>*'
 
     def ud_fit(self, x, y=None, prefix=''):
         """
@@ -697,8 +699,9 @@ class UD_NaEncoder(object):
         for i, key in enumerate(classes_2):
             self.dmap[key] = 0
 
+        self.base_value = 'np.nan'
         self.dmap.update({'<UNSEEN>*': self.base_value})
-        self.dmap.update({self.unknown: 'np.nan'})
+        self.dmap.update({self.unknown: self.base_value})
         self.feat_name = prefix + '_ne'
 
     def ud_transform(self, x):
@@ -791,56 +794,58 @@ class UD_FEATURE_ENCODER():
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except Exception as e:
-                print(e)
+            except:
+                raise ValueError("Recoding statement is incorrect")
 
         elif str(type(encodr)) == '<class \'feature_encoding.UD_NaEncoder\'>':
             try:
                 # recoding_statement = "######### Recoding {i} using {j} ########" \
                 #     .format(i=ori_name, j=type(encodr))
                 recoding_statement = ""
-                recoding_statement += "\n" + "df['" + encodr.feat_name + "'] = df['" + ori_name \
+                recoding_statement += "\ndf['" + encodr.feat_name + "'] = df['" + ori_name \
                                       + "'].isnull().astype(int)"
 
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except Exception as e:
-                print(e)
+            except:
+                raise ValueError("Recoding statement is incorrect")
 
         elif encodr.x_dtypes == 'cov':
             try:
                 # recoding_statement = "######### Recoding {i} using {j} ########" \
                 #     .format(i=ori_name, j=type(encodr))
                 recoding_statement = ""
-                recoding_statement += "\n" + "df['" + ori_name + "'] = df['" + ori_name \
-                                      + "'].fillna(" + str(encodr.unknown) + ")"
-                recoding_statement += "\n" + "df.loc[:, '" + encodr.feat_name + "'] =" \
-                                      + str(encodr.dmap.get('<UNSEEN>*'))
+                recoding_statement += "\ndf.loc[:, '" + encodr.feat_name + "'] = " \
+                                   + str(encodr.dmap.get('<UNSEEN>*'))
+                recoding_statement += "\ndf.loc[df['" + ori_name + "'].isnull(),'" \
+                                   + encodr.feat_name + "'] = " + str(str(encodr.dmap.get('<NA>*')))
+                dmap_tmp = encodr.dmap.copy()
+                dmap_tmp.pop('<NA>*')
+                dmap_tmp.pop('<UNSEEN>*')
+                for interval in sorted(dmap_tmp):
+                    value = dmap_tmp[interval]
+                    recoding_statement_group = "df.loc[(" + str(interval.left).replace('inf', 'np.inf') \
+                                               + " <= df['" + ori_name + "']) & (df['" + ori_name + "'] < " \
+                                               + str(interval.right).replace('inf', 'np.inf') + "),'" \
+                                               + encodr.feat_name + "'] = " + str(value)
 
-                for interval, value in encodr.dmap.items():
-                    if type(interval) != str:
-                        recoding_statement_group = "df.loc[(" + str(interval.left).replace('inf', 'np.inf') \
-                                                   + " <= df['" + ori_name + "']) & (df['" + ori_name + "'] < " \
-                                                   + str(interval.right).replace('inf', 'np.inf') + "),'" \
-                                                   + encodr.feat_name + "'] = " + str(value)
-
-                        recoding_statement += "\n" + recoding_statement_group
+                    recoding_statement += "\n" + recoding_statement_group
 
                 # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except Exception as e:
-                print(e)
+            except:
+                raise ValueError("Recoding statement is incorrect")
 
         elif encodr.x_dtypes == 'cav':
             try:
                 # recoding_statement = "######### Recoding {i} using {j} ########" \
                 #     .format(i=ori_name, j=type(encodr))
                 recoding_statement = ""
-                recoding_statement += "\n" + "df['" + ori_name + "'] = df['" + ori_name \
+                recoding_statement += "\ndf['" + ori_name + "'] = df['" + ori_name \
                                       + "'].fillna('" + str(encodr.unknown) + "')"
-                recoding_statement += "\n" + "df.loc[:, '" + encodr.feat_name + "'] =" \
+                recoding_statement += "\ndf.loc[:, '" + encodr.feat_name + "'] = " \
                                       + str(encodr.dmap.get('<UNSEEN>*'))
                 df_map = pd.DataFrame([encodr.dmap], index=['value']).T.drop(['<UNSEEN>*'], axis=0)
                 df_map = df_map.reset_index(drop=False).set_index('value')
@@ -860,8 +865,9 @@ class UD_FEATURE_ENCODER():
                     # print(recoding_statement + "\n")
                 return recoding_statement
 
-            except Exception as e:
-                print(e)
+            except:
+                raise ValueError("Recoding statement is incorrect")
+
 
     def ud_fit(self, df, label, WoeEncoder_feat=[], BinEncoder_feat=[], CountEncoder_feat=[],
                OneHotEncoder_feat=[], TargetEncoder_feat=[], NaEncoder_feat=[], exclude_list=[]):
@@ -896,7 +902,7 @@ class UD_FEATURE_ENCODER():
                     self.final_WoeEncoder_feat += [i]
 
                 except:
-                    raise Exception("Failed to apply WoeEncoder")
+                    raise ValueError("Failed to apply WoeEncoder")
 
             for i in cov_list:
                 try:
@@ -907,7 +913,7 @@ class UD_FEATURE_ENCODER():
                     self.final_WoeEncoder_feat += [i]
 
                 except:
-                    raise Exception("Failed to apply WoeEncoder")
+                    raise ValueError("Failed to apply WoeEncoder")
 
         if WoeEncoder_feat != [] and not self.use_woe_encoder:
             for i in WoeEncoder_feat:
@@ -920,7 +926,7 @@ class UD_FEATURE_ENCODER():
                         self.final_WoeEncoder_feat += [i]
 
                     except:
-                        raise Exception("Failed to apply WoeEncoder")
+                        raise ValueError("Failed to apply WoeEncoder")
 
                 else:
                     try:
@@ -931,7 +937,7 @@ class UD_FEATURE_ENCODER():
                         self.final_WoeEncoder_feat += [i]
 
                     except:
-                        raise Exception("Failed to apply WoeEncoder")
+                        raise ValueError("Failed to apply WoeEncoder")
 
         for i in BinEncoder_feat:
             try:
@@ -942,7 +948,7 @@ class UD_FEATURE_ENCODER():
                 self.final_BinEncoder_feat += [i]
 
             except:
-                raise Exception("Failed to apply BinEncoder")
+                raise ValueError("Failed to apply BinEncoder")
 
         for i in CountEncoder_feat:
             try:
@@ -953,7 +959,7 @@ class UD_FEATURE_ENCODER():
                 self.final_CountEncoder_feat += [i]
 
             except:
-                raise Exception("Failed to apply CountEncoder")
+                raise ValueError("Failed to apply CountEncoder")
 
         for i in OneHotEncoder_feat:
             try:
@@ -964,7 +970,7 @@ class UD_FEATURE_ENCODER():
                 self.final_OneHotEncoder_feat += [i]
 
             except:
-                raise Exception("Failed to apply OneHotEncoder")
+                raise ValueError("Failed to apply OneHotEncoder")
 
         for i in TargetEncoder_feat:
             try:
@@ -975,7 +981,7 @@ class UD_FEATURE_ENCODER():
                 self.final_TargetEncoder_feat += [i]
 
             except:
-                raise Exception("Failed to apply TargetEncoder")
+                raise ValueError("Failed to apply TargetEncoder")
 
         for i in NaEncoder_feat:
             try:
@@ -986,7 +992,7 @@ class UD_FEATURE_ENCODER():
                 self.final_NaEncoder_feat += [i]
 
             except:
-                raise Exception("Failed to apply NaEncoder")
+                raise ValueError("Failed to apply NaEncoder")
 
     def ud_transform(self, df, label=None, exclude_list=[], write=False):
         """
@@ -1027,7 +1033,7 @@ class UD_FEATURE_ENCODER():
                         del df[i]
 
                 except:
-                    print("Failed to transform", i)
+                    print("Failed to encode", i)
             else:
                 pass
 
@@ -1056,5 +1062,7 @@ class UD_FEATURE_ENCODER():
                     CountEncoder_feat=CountEncoder_feat, OneHotEncoder_feat=OneHotEncoder_feat,
                     TargetEncoder_feat=TargetEncoder_feat, NaEncoder_feat=NaEncoder_feat,
                     exclude_list=exclude_list)
+
+
 
         return self.ud_transform(df, label, exclude_list=exclude_list, write=write)

@@ -95,7 +95,7 @@ class UD_TRANSFORMER():
         : return x: transformed feature, pd.series of shape (n_samples,)
         """
         if y is None:
-            raise ValueError('Transformation selection needs valid y label.')
+            raise Exception('Transformation selection needs valid y label.')
 
         ori_name = x.name
         recoding_statement = ""
@@ -196,29 +196,29 @@ class UD_TRANSFORMER():
                     try:
                         transformr = self.__dict__.get(i + '_transformer')
 
+                        if transformr == 'square':
+                            df[i + '_square'] = self.ud_square_fit_transform(df[i], y=None)
+
+                            if self.drop_ori_feat:
+                                del df[i]
+
+                        elif transformr == 'sqrt':
+                            df[i + '_sqrt'] = self.ud_sqrt_fit_transform(df[i], y=None)
+
+                            if self.drop_ori_feat:
+                                del df[i]
+
+                        elif transformr == 'log':
+                            df[i + '_log'] = self.ud_log_fit_transform(df[i], y=None)
+
+                            if self.drop_ori_feat:
+                                del df[i]
+
+                        elif transformr == 'without':
+                            pass
+
                     except:
                         print('{i}\'s transformer is not defined'.format(i=i))
-
-                    if transformr == 'square':
-                        df[i + '_square'] = self.ud_square_fit_transform(df[i], y=None)
-
-                        if self.drop_ori_feat:
-                            del df[i]
-
-                    elif transformr == 'sqrt':
-                        df[i + '_sqrt'] = self.ud_sqrt_fit_transform(df[i], y=None)
-
-                        if self.drop_ori_feat:
-                            del df[i]
-
-                    elif transformr == 'log':
-                        df[i + '_log'] = self.ud_log_fit_transform(df[i], y=None)
-
-                        if self.drop_ori_feat:
-                            del df[i]
-
-                    elif transformr == 'without':
-                        pass
 
                 else:
                     pass

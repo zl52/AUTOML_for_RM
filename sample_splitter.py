@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 ####################################################################################################
 
 
-def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by_ratio=True,
+def SAMPLE_SPLITTER(df, label, dt_col=None, val_size=0.2, oot_size=0.2, split_by_ratio=True,
                     method='oot', drop_dt_col=False, random_state=2019):
     """
     Split samples into two or three sets: train, validation (and oot(test)) sets.
@@ -22,7 +22,6 @@ def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by
     : param df: the dataframe of samples to be splitted
     : param label: boolean label
     : param dt_col: column indicating datetime
-    : param uid: unique key
     : param val_size: size of validation set (by ratio)
     : param oot_size: size of oot(test) set
     : param split_by_ratio: whether to split oot(test) set by defined ratio
@@ -34,8 +33,8 @@ def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by
     : return: train set, train label, validation set, validation label (oot(test) set, oot(test) label)
     """
     if method == 'oot':
-        if (dt_col is None) | (uid is None):
-            raise Exception("Valid dt_col indicating datetime and uid indicating unique key are needed")
+        if dt_col is None:
+            raise ValueError("Valid dt_col indicating datetime is needed")
 
         df = df.sort_values(dt_col, ascending=False)
 
@@ -72,5 +71,5 @@ def SAMPLE_SPLITTER(df, label, dt_col, uid, val_size=0.2, oot_size=0.2, split_by
         return train, train_y, val, val_y
 
     else:
-        raise ValueError('method {method} is not defined.'.format(method=method),
+        raise Exception('method {method} is not defined.'.format(method=method),
                         ' Must chosen between \'random\' and \'oot\'')

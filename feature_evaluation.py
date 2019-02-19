@@ -52,7 +52,7 @@ def get_iv(df, target=TARGET, trimmr=None, cav_list_appd=[], cov_list_appd=[], e
             df_copy = trimmr.ud_transform(df_copy)
 
         except:
-            raise Exception("The trimmer is not valid")
+            raise ValueError("The trimmer is not valid")
 
     if type(target) == str:
         target = [target]
@@ -72,13 +72,7 @@ def get_iv(df, target=TARGET, trimmr=None, cav_list_appd=[], cov_list_appd=[], e
             cut_points = get_cut_points(x_tmp, df_copy[t], cut_method='dt', *kwargs)
             x_tmp = pd.cut(x_tmp, cut_points)
             dmap2, pp_map2, np_map2 = woe(x_tmp, df_copy[t], woe_min, woe_max)
-
-            for i in dmap.items():
-                dmap[i[0]] = dmap2[pd.cut([i[1]], cut_points)[0]]
-                pp_map[i[0]] = pp_map2[pd.cut([i[1]], cut_points)[0]]
-                np_map[i[0]] = np_map2[pd.cut([i[1]], cut_points)[0]]
-
-            iv_list += [sum([(pp_map.get(i[0]) - np_map.get(i[0])) * dmap.get(i[0]) for i in dmap.items()])]
+            iv_list += [sum([(pp_map2.get(i[0]) - np_map2.get(i[0])) * dmap2.get(i[0]) for i in dmap2.items()])]
 
         for col in cov_list:
             be = UD_BinEncoder(bins=bins, cut_method='dt', labels=None)

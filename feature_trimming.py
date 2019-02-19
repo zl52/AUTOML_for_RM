@@ -39,7 +39,8 @@ class UD_TRIMMER():
         : param label: label will be used in the modeling process
         : param exclude_list: list of features excluded from being used to fit the transformer
         """
-        feats_list = [i for i in df.columns if i not in [label] + self.target + exclude_list]
+        feats_list = [i for i in df.select_dtypes(exclude=[object]).columns if i not in [label] + \
+                      self.target + exclude_list]
         formater = "{0:.02f}".format
         stat = desc_stat(df[feats_list], target=[], ratio_pct=False, use_formater=False)
         stat['qr'] = stat.apply(lambda x: max((x['75%'] - x['25%']),
@@ -81,8 +82,8 @@ class UD_TRIMMER():
                         recoding_statement = ''
                         v1 = self.ub_dict.get(ori_name)
                         v2 = self.lb_dict.get(ori_name)
-                        df[ori_name] = df[ori_name].map(lambda x: x if x < v1 else v1)
-                        df[ori_name] = df[ori_name].map(lambda x: x if x > v2 else v2)
+                        df[ori_name] = df[ori_name].map(lambda x: v1 if x > v1 else x)
+                        df[ori_name] = df[ori_name].map(lambda x: v2 if x < v2 else x)
 
                         if write is True and self.recoding_dict is not None and self.feat_dict is not None:
                             # recoding_statement = "######### Trmming {i} ########".format(i=ori_name)
@@ -94,10 +95,8 @@ class UD_TRIMMER():
                             key = list(self.feat_dict.keys())[list(self.feat_dict.values()).index(ori_name)]
                             self.feat_dict.update({key: ori_name})
                             self.recoding_dict[key] += recoding_statement
-
-                    except Exception as e:
-                        print("Can\'t trim feature ", ori_name, " due to ", e)
-
+                    except:
+                        print("Can\'t trim feature", ori_name)
                 else:
                     pass
         else:
