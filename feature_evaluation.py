@@ -1,26 +1,21 @@
-import pandas as pd;
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd;
 
 mpl.rcParams["axes.unicode_minus"] = False
 mpl.style.use('ggplot')
 
 import seaborn as sns
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_curve, auc, make_scorer, f1_score, fbeta_score, precision_score, \
-    roc_auc_score, accuracy_score, precision_recall_curve
 from itertools import combinations
-import xgboost as xgb
-from scipy.stats import beta, norm
+from scipy.stats import norm
 
 from tools import *
-from feature_trimming import UD_TRIMMER
 from feature_encoding import woe, get_cut_points, UD_BinEncoder
 from model_training import xgbt
-from model_evaluation import model_summary, bin_stat
+from model_evaluation import model_summary
 
 
 ####################################################################################################
@@ -57,8 +52,8 @@ def get_iv(df, target=TARGET, trimmr=None, cav_list_appd=[], cov_list_appd=[], e
     if type(target) == str:
         target = [target]
 
-    cav_list = [i for i in df.select_dtypes(exclude=[float, int, 'int64']).columns if i not in exclude_list + target]
-    cov_list = [i for i in df.select_dtypes(include=[float, int, 'int64']).columns if i not in exclude_list + target]
+    cav_list = [i for i in df.select_dtypes(include=[object]).columns if i not in exclude_list + target]
+    cov_list = [i for i in df.select_dtypes(exclude=[object]).columns if i not in exclude_list + target]
     df_iv = pd.DataFrame(index=cav_list + cov_list, columns=['iv_for_' + str(t) for t in target])
     df_copy[cav_list] = df_copy[cav_list].fillna('NA')
     df_copy[cov_list] = df_copy[cov_list].apply(lambda x: x.fillna(x.mean()), axis=1)
@@ -69,7 +64,7 @@ def get_iv(df, target=TARGET, trimmr=None, cav_list_appd=[], cov_list_appd=[], e
         for col in cav_list:
             dmap, pp_map, np_map = woe(df_copy[col], df_copy[t], woe_min, woe_max)
             x_tmp = [dmap[i] for i in df_copy[col]]
-            cut_points = get_cut_points(x_tmp, df_copy[t], cut_method='dt', *kwargs)
+            cut_points = get_cut_points(x_tmp, df_copy[t], cut_method='dt', **kwargs)
             x_tmp = pd.cut(x_tmp, cut_points)
             dmap2, pp_map2, np_map2 = woe(x_tmp, df_copy[t], woe_min, woe_max)
             iv_list += [sum([(pp_map2.get(i[0]) - np_map2.get(i[0])) * dmap2.get(i[0]) for i in dmap2.items()])]
@@ -102,7 +97,7 @@ def plot_corr(df):
                 ax=ax)
 
 
-def get_vif_cor(df, target, plot=False):
+def get_vif_cor(df, target=TARGET, plot=False):
     """
     Calculate vifs and correlations of columns in the dataframe
 
@@ -119,9 +114,8 @@ def get_vif_cor(df, target, plot=False):
     vif["vif"] = [variance_inflation_factor(df_tmp.values, i) for i in range(df_tmp.shape[1])]
     vif = vif.sort_values('vif', ascending=False)
     vif = vif.drop(['intercept'])
-    # vif['vif'] = vif['vif'].map(lambda x: '{:.2f}'.format(x))
-
     cor = df.corr()
+
     if plot == True:
         print("Correlation map of features\n")
         plot_corr(df)
@@ -141,8 +135,10 @@ def plot_hist(df, feat, bins=20, ax=None):
     (mu, sigma) = norm.fit(df[feat])
     # fit a normally distributed curve
     bins = min(min(bins, df[feat].nunique()) * 2, 100)
+
     if not ax:
         f, ax = plt.subplots(dpi=100)
+
     n, bins, patches = ax.hist(df[feat], bins, density=True, facecolor='orange', alpha=0.75)
     y = norm.pdf(bins, mu, sigma)
     ax.plot(bins, y, 'r--', linewidth=2)
@@ -150,7 +146,7 @@ def plot_hist(df, feat, bins=20, ax=None):
     plt.xlabel(feat)
 
 
-def plot_hist_all(df, target, bins=20):
+def plot_hist_all(df, target=TARGET, bins=20):
     """
     Plot histograms for all features in the dataframe
 
@@ -162,15 +158,15 @@ def plot_hist_all(df, target, bins=20):
     fig = plt.figure(figsize=(30, 6 * width))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
                         wspace=None, hspace=0.3)
-
     col = [i for i in df.select_dtypes(exclude=[object]).columns if i not in set(target)]
+
     for i in col:
         ax = fig.add_subplot(width, 5, fig_inx)
         plot_hist(df, i, bins=bins, ax=ax)
         fig_inx += 1
 
 
-def feature_combination(df, target, num_boost_round=1000, params=XGB_PARAMS, pos_label=1,
+def feature_combination(df, target=TARGET, num_boost_round=1000, params=XGB_PARAMS, pos_label=1,
                         exclude_list=[]):
     """
     Run through all combination of features to get best model 
@@ -182,6 +178,9 @@ def feature_combination(df, target, num_boost_round=1000, params=XGB_PARAMS, pos
     : params params: xgb parameters
     : params pos_label: positive label
     """
+    if df.shape[1] >=10:
+        raise Exception("To many features")
+
     col = [i for i in (set(df.columns) - set(target + exclude_list))]
     x = df[col]
     y = df[target]
@@ -191,9 +190,9 @@ def feature_combination(df, target, num_boost_round=1000, params=XGB_PARAMS, pos
     for i in range(2, x.shape[1] + 1):
         print(i)
         cc = list(combinations(x.columns, i))
+
         for j in range(len(cc)):
             print(list(cc[j]))
-
             model, pred_train_value, pred_val_value = xgbt(x_train[list(cc[j])]
                                                            , y_train
                                                            , x_val[list(cc[j])]
@@ -211,6 +210,7 @@ def feature_combination(df, target, num_boost_round=1000, params=XGB_PARAMS, pos
 
     if len(col) == 2:
         return xgb_res
+
     else:
         train_res = xgb_res.groupby(['index', 'combination']).sum().loc['train']
         val_res = xgb_res.groupby(['index', 'combination']).sum().loc['val']
@@ -367,88 +367,3 @@ def feature_combination(df, target, num_boost_round=1000, params=XGB_PARAMS, pos
 
 
 # #    return stats_list
-
-
-# def rf_featureimportance(df, target):
-#     """
-#     abandoned
-
-#     """
-#     rf = RandomForestClassifier(n_estimators=600
-#                                 , max_depth=6
-#                                 , min_samples_leaf=20
-#                                 , class_weight='balanced'
-#                                 , n_jobs=-1
-#                                 , random_state=1)
-#     col = [i for i in (set(df.columns) - set(target))]
-#     idx = col + ['accuracy', 'neg_ rate', 'AUC']
-#     rf_fi = pd.DataFrame(index=idx)
-#     for i in target:
-#         print('target {i}'.format(i=i))
-#         y = df[i]
-#         x = df[col]
-#         neg_rate = sum(y == 0) / len(y)
-
-#         rf.fit(x, y)
-#         prob = rf.predict_proba(x)[:, 0]
-#         fpr, tpr, thr = roc_curve(y, prob, pos_label=0)
-#         ac = auc(fpr, tpr)
-#         rf_fi[i] = list(rf.feature_importances_) + [rf.score(x, y), neg_rate, ac]
-#     rf_fi = np.round(rf_fi, 2)
-#     rf_fi.iloc[-3:-1, :] = rf_fi.iloc[-3:-1, :].applymap(lambda x: '{:.0f}%'.format(x * 100))
-
-#     return rf_fi
-
-
-# def xgb_featureimportance(df, target=target):
-#     """
-#     abandoned
-
-#     """
-#     XGB_PARAMS = {}
-#     XGB_PARAMS['objective'] = 'binary:logistic'
-#     XGB_PARAMS['eval_metric'] = 'auc'
-#     XGB_PARAMS['min_child_weight'] = 13
-#     XGB_PARAMS['eta'] = 0.01
-#     XGB_PARAMS['max_depth'] = 1
-#     XGB_PARAMS['subsample'] = 0.4
-#     XGB_PARAMS['colsample_bytree'] = 0.5
-#     XGB_PARAMS['silent'] = 0
-#     XGB_PARAMS['seed'] = 2018
-#     XGB_PARAMS['lambda'] = 20
-#     XGB_PARAMS['max_delta_step'] = 0
-#     XGB_PARAMS['scale_pos_weight'] = 7
-
-#     col = [i for i in (set(df.columns) - set(target))]
-#     xgb_fi = pd.DataFrame(col, columns=['feature']).sort_values(by='feature') \
-#         .reset_index(drop=True).set_index('feature')
-#     xgb_fi = pd.concat([xgb_fi, pd.DataFrame(index=['accuracy', 'neg_rate', 'AUC'])])
-
-#     for i in target:
-#         y = df['d{i}'.format(i=i)]
-#         x = df[col]
-#         neg_rate = sum(y == 0) / len(y)
-#         x_train, x_val, real_train_label, real_val_label = train_test_split(x, y, test_size=0.2,
-#                                                                             random_state=42)
-#         d = xgb.DMatrix(x, target=y)
-#         dtrain = xgb.DMatrix(x_train, target=real_train_label)
-#         dval = xgb.DMatrix(x_val, target=real_val_label)
-#         watchlist = [(dtrain, 'train'), (dval, 'eval')]
-#         model = xgb.train(params, dtrain, num_boost_round=1000, evals=watchlist,
-#                           verbose_eval=True, early_stopping_rounds=30)
-#         preds = model.predict(d)
-#         preds2 = [round(value) for value in preds]
-#         fpr, tpr, thr = roc_curve(y, -preds, pos_label=0)
-#         ac = auc(fpr, tpr)
-#         importance = model.get_fscore()
-#         importance_ = pd.Series(importance).to_frame().reset_index().rename(
-#             columns={'index': 'feature', 0: 'importance'})
-#         importance_ = pd.merge(importance_, pd.DataFrame(col, columns=['feature']), on='feature', how='right') \
-#             .fillna(0).sort_values(by='feature')
-#         print(len(importance_))
-#         xgb_fi['d{i}'.format(i=i)] = list(importance_['importance'].astype(int)) + \
-#                                      [accuracy_score(y, preds2), neg_rate, ac]
-#     xgb_fi = np.round(xgb_fi, 2)
-#     xgb_fi.iloc[-3:-1, :] = xgb_fi.iloc[-3:-1, :].applymap(lambda x: '{:.0f}%'.format(x * 100))
-
-#     return xgb_fi

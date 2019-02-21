@@ -1,13 +1,14 @@
-import pandas as pd;
-import numpy as np
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import bisect
-from collections import defaultdict, Counter
-from scipy import stats
 import math
+from collections import defaultdict, Counter
 
+import numpy as np
+import pandas as pd;
+from model_evaluation import bin_stat
+from scipy import stats
+from scipy.stats import chisquare
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
 from tools import *
 
 
@@ -84,15 +85,141 @@ def decision_tree_cutpoints(x, y, max_depth=4, min_samples_leaf=0.05, max_leaf_n
     return cut_points
 
 
+def chisquare_cutpoints(x, y, bins=10, min_pct_thr=0):
+    """
+    : param x: input samples
+    : param y: label
+    : param bins: maximal number of bins
+    : param min_pct_thr: minimum count-percentage of interval
+
+    : return: list of cut points
+    """
+    try:
+        df = pd.DataFrame({'feature': np.array(x), 'label': np.array(y)})
+    except:
+        df = pd.concat([x.reset_index(drop=True), y.reset_index(drop=True)], axis=1)
+        df.columns = ['feature', 'label']
+
+    df = df[df['feature'].notnull()]
+    value_list, value_cnt = list(df.feature.unique()), df.feature.nunique()
+
+    if value_cnt <= 10:
+        print("The number of original levels is less than or equal to max intervals")
+        return value_list
+
+    else:
+        if value_cnt > 100:
+            df['bin_range'], cutpoints = pd.qcut(df['feature'], q=np.linspace(0, 1, 101),
+                                                 retbins=True, precision=5, duplicates='drop')
+
+        else:
+            df['bin_range'] = df['feature']
+
+        stat1 = bin_stat(df, 'bin_range', 'label', reverse=False, how='cut', extra_stat=False)
+        interval_list, interval_cnt = [[i] for i in sorted(df.bin_range.unique())], df.bin_range.nunique()
+
+        while (len(interval_list) > bins):
+            chisqList = []
+
+            for i in range(len(interval_list) - 1):
+                interval_sublist1 = interval_list[i] + interval_list[i + 1]
+                test_stat1 = stat1[stat1.index.isin(interval_sublist1)]
+                chisq1 = chisquare(test_stat1['pos_count'], test_stat1['expected_count'])
+                chisqList.append(chisq1)
+
+            interval_merged_idx1 = chisqList.index(min(chisqList))
+            interval_merged_idx2 = chisqList.index(min(chisqList)) + 1
+            interval_list[interval_merged_idx1] = interval_list[interval_merged_idx1]\
+                                                + interval_list[interval_merged_idx2]
+            interval_list.remove(interval_list[interval_merged_idx2])
+
+        try:
+            cutpoints = sorted([interval_list[0][0].left] + [i[-1].right for i in interval_list])
+
+        except:
+            cutpoints = sorted(list(set([interval_list[0][0] - 0.001] + [i[-1] for i in interval_list])))
+
+        df['bin_range'] = pd.cut(df['feature'], bins=cutpoints, precision=0, retbins=True)[0]
+        stat2 = bin_stat(df, 'bin_range', 'label', reverse=False, how='cut', extra_stat=False)
+        interval_list = [[i] for i in stat2.index.tolist()]
+        min_pos_rate, max_pos_rate = stat2['pos_rate'].min(), stat2['pos_rate'].max()
+
+        while min_pos_rate == 0 or max_pos_rate == 1:
+            bad_interval = stat2.loc[stat2['pos_rate'].isin([0, 1]),].index.tolist()[0]
+            bad_interval_idx = interval_list.index([bad_interval])
+
+            if bad_interval_idx == 0:
+                cutpoints.pop(1)
+
+            elif bad_interval_idx == stat2.shape[0] - 1:
+                cutpoints.pop(-2)
+
+            else:
+                interval_sublist2 = [bad_interval] + interval_list[bad_interval_idx - 1]
+                test_stat2 = stat2[stat2.index.isin(interval_sublist2)]
+                chisq2 = chisquare(test_stat2['pos_count'], test_stat2['expected_count'])
+
+                interval_sublist3 = [bad_interval] + interval_list[bad_interval_idx + 1]
+                test_stat3 = stat2[stat2.index.isin(interval_sublist3)]
+                chisq3 = chisquare(test_stat3['pos_count'], test_stat3['expected_count'])
+
+                if chisq2 < chisq3:
+                    cutpoints.remove(cutpoints[bad_interval_idx])
+
+                else:
+                    cutpoints.remove(cutpoints[bad_interval_idx + 1])
+
+            df['bin_range'] = pd.cut(df['feature'], bins=cutpoints, precision=0, retbins=True)[0]
+            stat3 = stat2 = bin_stat(df, 'bin_range', 'label', reverse=False, how='cut', extra_stat=False)
+            interval_list = [[i] for i in stat2.index.tolist()]
+            min_pos_rate, max_pos_rate = stat2['pos_rate'].min(), stat2['pos_rate'].max()
+
+        if min_pct_thr > 0:
+            min_pct_interval, min_pct = np.argmin(stat3['count_proportion']), np.min(stat3['count_proportion'])
+
+            while min_pct < min_pct_thr and len(cutpoints) > 2:
+                bad_interval = np.argmin(stat3['count_proportion'])
+                bad_interval_idx = interval_list.index([bad_interval])
+
+                if bad_interval_idx == 0:
+                    cutpoints.pop(1)
+
+                elif bad_interval_idx == stat3.shape[0] - 1:
+                    cutpoints.pop(-2)
+
+                else:
+                    interval_sublist4 = [bad_interval] + interval_list[bad_interval_idx - 1]
+                    test_stat4 = stat3[stat3.index.isin(interval_sublist4)]
+                    chisq4 = chisquare(test_stat4['pos_count'], test_stat4['expected_count'])
+
+                    interval_sublist5 = [bad_interval] + interval_list[bad_interval_idx + 1]
+                    test_stat5 = stat3[stat3.index.isin(interval_sublist5)]
+                    chisq5 = chisquare(test_stat5['pos_count'], test_stat5['expected_count'])
+
+                    if chisq4 < chisq5:
+                        cutpoints.remove(cutpoints[bad_interval_idx])
+
+                    else:
+                        cutpoints.remove(cutpoints[bad_interval_idx + 1])
+
+                df['bin_range'] = pd.cut(df['feature'], bins=cutpoints, precision=0, retbins=True)[0]
+                stat4 = stat3 = bin_stat(df, 'bin_range', 'label', reverse=False, how='cut', extra_stat=False)
+                interval_list = [[i] for i in stat3.index.tolist()]
+                min_pct_interval, min_pct = np.argmin(stat3['count_proportion']), np.min(stat3['count_proportion'])
+
+        return cutpoints
+
+
 def get_cut_points(x, y=None, bins=10, cut_method='dt', precision=8, **kwargs):
     """
-    Get cut points by different methods. Supported methods include 'cut', 'qcut' and 'dt', standing for
-    'cut by defined cut points', 'equally cut' and 'cut by decision tree cutpoints' respectively
+    Get cut points by different methods. Supported methods include 'cut', 'qcut', 'dt' and 'chi, 
+    standing for 'cut by defined cut points', 'equally cut', 'cut by decision tree cutpoints'
+    and 'cut using chisquare statistics respectively'
 
     : param x: input samples
     : param y: label
     : param bins: number of bins or defined cutpoints when 'cut' method is applied
-    : param cut_method: cut method ('cut'(defualt), 'qcut' or 'dt')
+    : param cut_method: cut method ('cut'(defualt), 'qcut', 'dt' or 'chi')
     : param precision: precision
 
     : return: list of cut points
@@ -106,11 +233,14 @@ def get_cut_points(x, y=None, bins=10, cut_method='dt', precision=8, **kwargs):
     elif (cut_method == 'dt') & (y is not None):
         cut_points = decision_tree_cutpoints(x, y, **kwargs)
 
+    elif (cut_method == 'chi') & (y is not None):
+        cut_points = chisquare_cutpoints(x, y, bins=bins)
+
     elif y is None:
         raise ValueError("y must not be none if \'dt\' is chosen")
 
     else:
-        raise ValueError("cut_method must chosen among \'cut\',\'qcut\' and \'dt\'")
+        raise ValueError("cut_method must chosen among \'cut\',\'qcut\', \'dt\' and \'chi\'")
 
     if cut_method != 'dt':
         cut_points = cut_points[1:-1]
@@ -280,7 +410,7 @@ class UD_OneHotEncoder(OneHotEncoder):
         onehot.fit(x.reshape(-1, 1))
         self.encoder = onehot
         self.active_features_ = onehot.active_features_
-        self.feat_name = [prefix + '_' + str(self.dmap[i] + '_oe') for i in self.active_features_]
+        self.feat_name = [prefix + '_' + str(self.dmap[i]) + '_oe' for i in self.active_features_]
 
     def ud_transform(self, x):
         """
@@ -330,7 +460,7 @@ class UD_CountEncoder(object):
         self.base_value = base_value
         self.use_log_transform = use_log_transform
         self.smoothing_param = 1
-        self.unknown='<NA>*'
+        self.unknown = '<NA>*'
 
     def ud_fit(self, x, y=None, prefix=''):
         """
@@ -532,15 +662,16 @@ class UD_WoeEncoder(object):
                 self.cut_points = be.cut_points
                 x = np.array(pd.Series(x).fillna(self.unknown))
                 self.dmap, pp_map, np_map = woe(x, y, self.woe_min, self.woe_max)
-                self.iv = [sum([(pp_map.get(i[0]) - np_map.get(i[0])) * self.dmap.get(i[0]) for i in self.dmap.items()])]
+                self.iv = [
+                    sum([(pp_map.get(i[0]) - np_map.get(i[0])) * self.dmap.get(i[0]) for i in self.dmap.items()])]
 
             else:
-                raise ValueError("x_dtypes must chosen between \'nomi\' and \'cont\'")
+                raise ValueError("x_dtypes must chosen between \'cov\' and \'cav\'")
 
-        self.dmap.update({'<UNSEEN>*': self.base_value})
         if not self.unknown in self.dmap.keys():
             self.dmap.update({self.unknown: self.base_value})
 
+        self.dmap.update({'<UNSEEN>*': self.base_value})
         self.feat_name = prefix + '_we'
 
     def ud_transform(self, x):
@@ -556,7 +687,7 @@ class UD_WoeEncoder(object):
 
         x = pd.Categorical(x).add_categories(self.unknown).fillna(self.unknown)
         x = np.array([self.dmap[i] if i in self.dmap.keys() else self.base_value for i in x])
-        
+
         return x
 
     def ud_fit_transform(self, x, y=None, prefix=''):
@@ -682,10 +813,10 @@ class UD_NaEncoder(object):
         : param y: label
         : param prefix: prefix (eg. original column name)
         """
-        x = pd.Series(x).copy()
+        x = pd.Series(x)
 
         if x.isnull().sum() == 0:
-            raise ValueError("Feature has no NAs")
+            print("Feature has no NAs")
 
         classes_ = pd.Series(x.unique())
         classes_1 = classes_[classes_.notnull()]
@@ -714,9 +845,6 @@ class UD_NaEncoder(object):
         """
         x = pd.Series(x)
         x = np.array(x.isnull().astype(int))
-
-        if sum(x) == len(x):
-            raise ValueError("NaEncoder is not working properly")
 
         return x
 
@@ -817,9 +945,9 @@ class UD_FEATURE_ENCODER():
                 #     .format(i=ori_name, j=type(encodr))
                 recoding_statement = ""
                 recoding_statement += "\ndf.loc[:, '" + encodr.feat_name + "'] = " \
-                                   + str(encodr.dmap.get('<UNSEEN>*'))
+                                      + str(encodr.dmap.get('<UNSEEN>*'))
                 recoding_statement += "\ndf.loc[df['" + ori_name + "'].isnull(),'" \
-                                   + encodr.feat_name + "'] = " + str(str(encodr.dmap.get('<NA>*')))
+                                      + encodr.feat_name + "'] = " + str(str(encodr.dmap.get('<NA>*')))
                 dmap_tmp = encodr.dmap.copy()
                 dmap_tmp.pop('<NA>*')
                 dmap_tmp.pop('<UNSEEN>*')
@@ -867,7 +995,6 @@ class UD_FEATURE_ENCODER():
 
             except:
                 raise ValueError("Recoding statement is incorrect")
-
 
     def ud_fit(self, df, label, WoeEncoder_feat=[], BinEncoder_feat=[], CountEncoder_feat=[],
                OneHotEncoder_feat=[], TargetEncoder_feat=[], NaEncoder_feat=[], exclude_list=[]):
@@ -1037,6 +1164,10 @@ class UD_FEATURE_ENCODER():
             else:
                 pass
 
+        self.final_OneHotEncoder_new_feat = []
+        for i in range(len(self.final_OneHotEncoder_feat)):
+            self.final_OneHotEncoder_new_feat += self.feat_dict[self.final_OneHotEncoder_feat[i]]
+
         return df
 
     def ud_fit_transform(self, df, label, WoeEncoder_feat=[], BinEncoder_feat=[], CountEncoder_feat=[],
@@ -1062,7 +1193,5 @@ class UD_FEATURE_ENCODER():
                     CountEncoder_feat=CountEncoder_feat, OneHotEncoder_feat=OneHotEncoder_feat,
                     TargetEncoder_feat=TargetEncoder_feat, NaEncoder_feat=NaEncoder_feat,
                     exclude_list=exclude_list)
-
-
 
         return self.ud_transform(df, label, exclude_list=exclude_list, write=write)

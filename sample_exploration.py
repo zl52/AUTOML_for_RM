@@ -1,7 +1,7 @@
 import pandas as pd;
 import numpy as np
 
-from scipy.stats import chi2_contingency
+from scipy.stats import chi2_contingency, chisquare
 from data_cleaning import na_detection
 
 from tools import *
@@ -92,8 +92,8 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
     """
     df = na_detection(df)
     col = [i for i in (set(df.columns) - set(target))]
-    cav_list = [i for i in col if i in df.select_dtypes(include=[object])]
-    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object])]
+    cav_list = [i for i in col if i in df.select_dtypes(include=[object]).columns]
+    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object]).columns]
 
     try:
         stat_cov = df[cov_list].describe().T
@@ -124,11 +124,11 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
         coverage_rate=df[col].apply(lambda x: x.count() / len(x), axis=0),
         unique_value_cnt=df[col].apply(lambda x: x.nunique(), axis=0),
         HF_value=df[col].apply(lambda x: x.value_counts().index[0] \
-            if x.count() != 0 else np.nan, axis=0),
+                               if x.count() != 0 else np.nan, axis=0),
         HF_value_cnt=df[col].apply(lambda x: x.value_counts().iloc[0] \
-            if x.count() != 0 else np.nan, axis=0),
+                                   if x.count() != 0 else np.nan, axis=0),
         HF_value_pct=df[col].apply(lambda x: x.value_counts().iloc[0] / len(x) \
-            if x.count() != 0 else np.nan, axis=0))
+                                   if x.count() != 0 else np.nan, axis=0))
 
     stat['count'] = stat['count'].astype(int)
 
@@ -137,9 +137,8 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
             stat[['missing_rate', 'coverage_rate', 'HF_value_pct']].applymap(lambda x: '{:.2f}%'.format(x * 100))
 
     if use_formater:
-        formater = "{0:.02f}".format
         stat[stat.select_dtypes(include=[float]).columns] = \
-            stat[stat.select_dtypes(include=[float]).columns].applymap(formater)
+            stat[stat.select_dtypes(include=[float]).columns].applymap(lambda x: '{0:.02f}'.format(x))
 
     if not silent:
         print("Generate each feature\'s descriptive statistical summary, including missing count,",
@@ -205,6 +204,7 @@ def sample_coverage_stat(df, target=TARGET, exclude_col=[], silent=True, event=1
     col = list(set(df.columns.tolist()) - set(exclude_col))
     df = na_detection(df)
     df['covered'] = (df[col].notnull().sum(axis=1) > len(target)).astype(int)
+
     if event == 1:
         stat = pd.pivot_table(df, index='covered', values=target, margins=True)
 
@@ -219,7 +219,7 @@ def sample_coverage_stat(df, target=TARGET, exclude_col=[], silent=True, event=1
     return stat
 
 
-def feats_coverage_chi_test(df, target=TARGET, thr=0.01, event=1):
+def feats_coverage_chi_test(df, target=TARGET, thr=0.01, event=1, smoothing_param=0.0001):
     """
     abandoned
     """
@@ -228,24 +228,24 @@ def feats_coverage_chi_test(df, target=TARGET, thr=0.01, event=1):
     col = [i for i in (set(df.columns) - set(target))]
 
     for s in col:
-        value_v = pd.DataFrame()
+        feature_add = pd.DataFrame()
 
         for t in target:
             feature_covered_rate = (df[df[s].isnull()][t] == event).sum() / rowcnt
             feature_uncovered_rate = (df[-df[s].isnull()][t] == event).sum() / rowcnt
-            num1 = (df[df[s].isnull()][t] == 1 - event).sum() + 0.0001
-            num2 = (df[df[s].isnull()][t] == event).sum() + 0.0001
-            num3 = (df[-df[s].isnull()][t] == 1 - event).sum() + 0.0001
-            num4 = (df[-df[s].isnull()][t] == event).sum() + 0.0001
+            num1 = (df[df[s].isnull()][t] == 1 - event).sum() + smoothing_param
+            num2 = (df[df[s].isnull()][t] == event).sum() + smoothing_param
+            num3 = (df[-df[s].isnull()][t] == 1 - event).sum() + smoothing_param
+            num4 = (df[-df[s].isnull()][t] == event).sum() + smoothing_param
             matrix = np.array([[num1, num2], [num3, num4]])
-            single_feature_target_add = pd.DataFrame([feature_covered_rate,
-                                                      feature_uncovered_rate,
-                                                      np.NaN],
-                                                     index=[s + '_cover', s + '_uncover', 'sig'],
-                                                     columns=[str(t)]).T
-            single_feature_target_add['sig'] = True if chi2_contingency(matrix)[1] < thr else False
-            single_feature_add = pd.concat([single_feature_add, single_feature_target_add], axis=1)
+            feature_target_add = pd.DataFrame([feature_covered_rate,
+                                              feature_uncovered_rate,
+                                              np.NaN],
+                                             index=[s + '_cover', s + '_uncover', 'sig'],
+                                             columns=[str(t)]).T
+            feature_target_add['sig'] = True if stats.chisquare(matrix)[1] < thr else False
+            feature_add = pd.concat([feature_add, feature_target_add], axis=1)
 
-        res = pd.concat([res, single_feature_add], axis=0)
+        res = pd.concat([res, feature_add], axis=0)
 
     return np.round(res, 3)

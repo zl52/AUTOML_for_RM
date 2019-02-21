@@ -54,11 +54,12 @@ class UD_TRIMMER():
                                                        x['1%'])
                                          , axis=1)
         stat['upper_bound'] = stat.apply(lambda x: x['max'] if x['upper_bound'] == x['lower_bound'] \
-            else x['upper_bound'], axis=1)
+                                                            else x['upper_bound'], axis=1)
         stat['lower_bound'] = stat.apply(lambda x: x['min'] if x['upper_bound'] == x['lower_bound'] \
-            else x['lower_bound'], axis=1)
+                                                            else x['lower_bound'], axis=1)
         self.ub_dict = np.round(stat['upper_bound'], 5).to_dict()
         self.lb_dict = np.round(stat['lower_bound'], 5).to_dict()
+
         if not self.silent:
             print("Trim continuous features in the dataframe")
 
@@ -75,7 +76,9 @@ class UD_TRIMMER():
         : return df: trimmed dataframe
         """
         if action:
+
             for ori_name in self.ub_dict.keys():
+
                 if ori_name not in exclude_list:
 
                     try:
@@ -85,20 +88,21 @@ class UD_TRIMMER():
                         df[ori_name] = df[ori_name].map(lambda x: v1 if x > v1 else x)
                         df[ori_name] = df[ori_name].map(lambda x: v2 if x < v2 else x)
 
-                        if write is True and self.recoding_dict is not None and self.feat_dict is not None:
-                            # recoding_statement = "######### Trmming {i} ########".format(i=ori_name)
-                            recoding_statement = ""
+                        if write and self.recoding_dict is not None and self.feat_dict is not None:
                             recoding_statement += "\ndf.loc[" + "df['" + ori_name + "'] > " + str(v1) \
-                                                  + ", '" + ori_name + "'] = " + str(v1)
+                                               + ", '" + ori_name + "'] = " + str(v1)
                             recoding_statement += "\ndf.loc[" + "df['" + ori_name + "'] < " + str(v2) \
-                                                  + ", '" + ori_name + "'] = " + str(v2)
+                                               + ", '" + ori_name + "'] = " + str(v2)
                             key = list(self.feat_dict.keys())[list(self.feat_dict.values()).index(ori_name)]
                             self.feat_dict.update({key: ori_name})
                             self.recoding_dict[key] += recoding_statement
+
                     except:
-                        print("Can\'t trim feature", ori_name)
+                        print("Can\'t trim feature ", ori_name)
+
                 else:
                     pass
+
         else:
             pass
 
@@ -117,6 +121,7 @@ class UD_TRIMMER():
         : return df: trimmed dataframe
         """
         if action:
+
             self.ud_fit(df, label=label, exclude_list=exclude_list)
             df = self.ud_transform(df, label=label, action=action, exclude_list=exclude_list, write=write)
 

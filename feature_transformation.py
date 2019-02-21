@@ -5,7 +5,7 @@ from sklearn.feature_selection import f_regression
 from sklearn.preprocessing import MinMaxScaler, StandardScaler, Normalizer
 
 from tools import *
-from recoding_statement import generate_recoding_statement
+from recoding_statement import GENERATE_OUTPUT_FILES
 
 
 ####################################################################################################
@@ -114,27 +114,18 @@ class UD_TRANSFORMER():
             elif np.argmin(f_stat) == 1:
                 x = x_square
                 self.__dict__.update({ori_name + '_transformer': 'square'})
-                # recoding_statement = "######### Transform {i} using square strategy ########" \
-                #                      .format(i=ori_name)
-                recoding_statement = ""
                 recoding_statement += "\ndf['" + x.name + "'] = df['" \
                                       + ori_name + "'].apply(np.square)"
 
             elif np.argmin(f_stat) == 2:
                 x = x_sqrt
                 self.__dict__.update({ori_name + '_transformer': 'sqrt'})
-                # recoding_statement = "######### Transform {i} using sqrt strategy ########" \
-                #                      .format(i=ori_name)
-                recoding_statement = ""
                 recoding_statement += "\ndf['" + x.name + "'] = df['" \
                                       + ori_name + "'].apply(lambda x: np.sqrt(max(x, 0)))"
 
             elif np.argmin(f_stat) == 3:
                 x = x_log
                 self.__dict__.update({ori_name + '_transformer': 'log'})
-                # recoding_statement = "######### Transform {i} using log strategy ########" \
-                #                      .format(i=ori_name)
-                recoding_statement = ""
                 recoding_statement += "\ndf['" + x.name + "'] = df['" \
                                       + ori_name + "'].apply(lambda x: np.log(max(x, 0.00001)))"
 
@@ -247,5 +238,3 @@ class UD_TRANSFORMER():
 
         else:
             return df
-
-        return df

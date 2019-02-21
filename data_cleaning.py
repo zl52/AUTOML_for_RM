@@ -45,8 +45,8 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
     """
     df = na_detection(df)
     col = [i for i in (set(df.columns) - set(target))]
-    cav_list = [i for i in col if i in df.select_dtypes(include=[object])]
-    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object])]
+    cav_list = [i for i in col if i in df.select_dtypes(include=[object]).columns]
+    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object]).columns]
 
     try:
         stat_cov = df[cov_list].describe().T
@@ -77,11 +77,11 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
         coverage_rate=df[col].apply(lambda x: x.count() / len(x), axis=0),
         unique_value_cnt=df[col].apply(lambda x: x.nunique(), axis=0),
         HF_value=df[col].apply(lambda x: x.value_counts().index[0] \
-            if x.count() != 0 else np.nan, axis=0),
+                               if x.count() != 0 else np.nan, axis=0),
         HF_value_cnt=df[col].apply(lambda x: x.value_counts().iloc[0] \
-            if x.count() != 0 else np.nan, axis=0),
+                                   if x.count() != 0 else np.nan, axis=0),
         HF_value_pct=df[col].apply(lambda x: x.value_counts().iloc[0] / len(x) \
-            if x.count() != 0 else np.nan, axis=0))
+                                   if x.count() != 0 else np.nan, axis=0))
 
     stat['count'] = stat['count'].astype(int)
 
@@ -90,9 +90,8 @@ def desc_stat(df, target=TARGET, ratio_pct=True, use_formater=True, silent=True)
             stat[['missing_rate', 'coverage_rate', 'HF_value_pct']].applymap(lambda x: '{:.2f}%'.format(x * 100))
 
     if use_formater:
-        formater = "{0:.02f}".format
         stat[stat.select_dtypes(include=[float]).columns] = \
-            stat[stat.select_dtypes(include=[float]).columns].applymap(formater)
+            stat[stat.select_dtypes(include=[float]).columns].applymap(lambda x: '{0:.02f}'.format(x))
 
     if not silent:
         print("Generate each feature\'s descriptive statistical summary, including missing count,",
@@ -157,7 +156,7 @@ class DATA_FILTER(object):
 
             print('Percentages of high-frequency-values of these columns exceed defined threshold: {thr}\n\n' \
                   .format(thr=self.HF_value_thr), '\n '.join(drop3))
-            print('\n' + '_ ' * 60 + ' \n')
+            print('\n' + '_' * 120 + ' \n')
 
     def ud_transform(self, df):
         """

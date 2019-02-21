@@ -185,65 +185,70 @@ def get_xgb_fi(model, method='interaction', alpha=0.7, top=20):
         print('wrong method choice. (rank or interaction)')
 
 
-def bin_stat(pred_, bin_range, target, bins=10, reverse=False, how='qcut', with_label=True):
+def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=True, extra_stat=True):
     """
     Get bin range statistics
 
     : params pred_: predicted value
     : params bin_range: col of bin ranges
     : params target: label of interest
-    : params bins: number of bins
     : params reverse: whether to reverse the ordering of bin ranges
     : params how: how to cut the range
     : params with_label: with label or not
+    : params extra_stat: whether to calculate extra statistics
     """
+    bins=pred_[bin_range].nunique()
     if with_label == True:
-        res = (1 - pred_.groupby(bin_range)[target].value_counts(normalize=True, sort=False) \
-               .xs(0, level=target)).to_frame()
-        res['counts'] = pred_[bin_range].value_counts(sort=False)
-        res['counts_proportion'] = pred_[bin_range].value_counts(normalize=True, sort=False)
-        res['recall_num'] = pred_.groupby(bin_range)[target].apply(lambda x: sum(x == 0) * 1.0)
+        res = (pred_.groupby(bin_range)[target].sum() / pred_.groupby(bin_range)[target].count()).to_frame()
+        res = res.rename(columns={target: 'pos_rate'})
+        res['count'] = pred_[bin_range].value_counts(sort=False)
+        res['pos_count'] = res['count'] * res['pos_rate']
+        res['expected_count'] = res['count'] * pred_[target].mean()
+        res['count_proportion'] = pred_[bin_range].value_counts(normalize=True, sort=False)
+        res['recall_num'] = pred_.groupby(bin_range)[target].apply(lambda x: sum(x == 0))
         res['recall_rate'] = pred_.groupby(bin_range)[target].apply(
-            lambda x: sum(x == 0) * 1.0 / sum(pred_[target] == 0))
+                                          lambda x: sum(x == 0) / sum(pred_[target] == 0))
 
-        if reverse == False:
-            if how == 'qcut':
-                res['accum_pos_rate'] = [np.mean(res[target].iloc[:i]) for i in range(1, bins + 1)]
-                res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[:i]) for i in range(1, bins + 1)]
-                res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[:i]) for i in range(1, bins + 1)]
+        if extra_stat:
+            if reverse == False:
+                if how == 'qcut':
+                    res['accum_pos_rate'] = [np.mean(res['pos_rate'].iloc[:i]) for i in range(1, bins + 1)]
+                    res['accum_count'] = [np.sum(res['count_proportion'].iloc[:i]) for i in range(1, bins + 1)]
+                    res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[:i]) for i in range(1, bins + 1)]
 
-            elif how == 'cut':
-                res['accum_pos_rate'] = [(res[target][:i] * res['counts'].iloc[:i]).sum() \
-                                         / res['counts'][:i].sum() for i in range(1, bins + 1)]
-                res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[:i]) for i in range(1, bins + 1)]
-                res['accum_recall_rate'] = [sum(res['recall_num'][:i]) * 1.0 / sum(pred_[target] == 0)
-                                            for i in range(1, bins + 1)]
+                elif how == 'cut':
+                    res['accum_pos_rate'] = [(res['pos_rate'][:i] * res['count'].iloc[:i]).sum() \
+                                             / res['count'][:i].sum() for i in range(1, bins + 1)]
+                    res['accum_count'] = [np.sum(res['count_proportion'].iloc[:i]) for i in range(1, bins + 1)]
+                    res['accum_recall_rate'] = [np.sum(res['recall_num'][:i]) / sum(pred_[target] == 0)
+                                                for i in range(1, bins + 1)]
+                else:
+                    print("\"how\" must chosen between qcut and cut")
+
             else:
-                print("\"how\" must chosen between qcut and cut")
+                if how == 'qcut':
+                    res['accum_pos_rate'] = [np.mean(res['pos_rate'].iloc[i:]) for i in range(bins)]
+                    res['accum_count'] = [np.sum(res['count_proportion'].iloc[i:]) for i in range(bins)]
+                    res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[i:]) for i in range(bins)]
 
-        else:
-            if how == 'qcut':
-                res['accum_pos_rate'] = [np.mean(res[target].iloc[i:]) for i in range(bins)]
-                res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[i:]) for i in range(bins)]
-                res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[i:]) for i in range(bins)]
-
-            elif how == 'cut':
-                res['accum_pos_rate'] = [(res[target].iloc[i:] * res['counts'].iloc[i:]).sum() \
-                                         / res['counts'].iloc[i:].sum() \
-                                         for i in range(bins)]
-                res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[i:]) for i in range(bins)]
-                res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[i:]) for i in range(bins)]
+                elif how == 'cut':
+                    res['accum_pos_rate'] = [(res['pos_rate'].iloc[i:] * res['count'].iloc[i:]).sum() \
+                                             / res['count'].iloc[i:].sum() \
+                                             for i in range(bins)]
+                    res['accum_count'] = [np.sum(res['count_proportion'].iloc[i:]) for i in range(bins)]
+                    res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[i:]) for i in range(bins)]
 
     else:
-        res = pred_[bin_range].value_counts(sort=False).to_frame()
-        res['counts_proportion'] = pred_[bin_range].value_counts(normalize=True, sort=False)
-        res = res.rename(columns={'range': 'counts'})
+        res = pred_.groupby(bin_range)[bin_range].count().to_frame()
+        res['count_proportion'] = pred_[bin_range].value_counts(normalize=True, sort=False)
+        res = res.rename(columns={'bin_range': 'count'})
 
-        if reverse == False:
-            res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[:i]) for i in range(1, bins + 1)]
+        if not extra_stat:
+            if reverse == False:
+                res['accum_count'] = [np.sum(res['count_proportion'].iloc[:i]) for i in range(1, bins + 1)]
 
-        else:
-            res['accum_counts'] = [np.sum(res['counts_proportion'].iloc[i:]) for i in range(bins)]
+            else:
+                res['accum_count'] = [np.sum(res['count_proportion'].iloc[i:]) for i in range(bins)]
 
     return np.round(res, 4)
 
@@ -474,19 +479,17 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
     pred_train_value_ = pd.DataFrame({'prob': pred_train_value.tolist(), 'pos_rate': real_train_label.tolist()})
 
     if how == 'qcut':
-        pred_train_value_['range'] = \
+        pred_train_value_['range'], cutpoint = \
             pd.qcut(pred_train_value_['prob'], q=np.linspace(0, 1, bins + 1), retbins=True, precision=5,
-                    duplicates='drop')[0]
+                    duplicates='drop')
 
         if pred_train_value_['range'].nunique() != bins:
             bins = pred_train_value_['range'].nunique()
-        cutpoint = \
-            pd.qcut(pred_train_value_['prob'], q=np.linspace(0, 1, bins + 1), retbins=True, precision=5,
-                    duplicates='drop')[1]
 
     elif how == 'cut':
         pred_train_value_['range'] = pd.cut(pred_train_value_['prob'], bins, precision=0, retbins=True)[0]
-    train_stats = bin_stat(pred_train_value_, 'range', 'pos_rate', bins, False, 'qcut')
+
+    train_stats = bin_stat(pred_train_value_, 'range', 'pos_rate', bins)
     print('cutpoints derived from train set are ', ', '.join([str(i) for i in cutpoint]))
 
     if Good_to_bad == False:
@@ -499,11 +502,11 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
 
     fig = plt.figure(figsize=(30, 8))
     ax1 = fig.add_subplot(1, fig_cnt, 1)
-    ax1.bar(xx, train_stats['counts'], width=0.5, color='orange', yerr=0.000001)
+    ax1.bar(xx, train_stats['count'], width=0.5, color='orange', yerr=0.000001)
     ax1.set_xticks(xx, list(range(1, bins + 1, 1)))
     ax1.set_ylabel('number', fontsize='x-large')
     ax1.set_xlabel(xlabel, fontsize='x-large')
-    ax1.set_ylim([0, max(train_stats['counts']) * 1.5])
+    ax1.set_ylim([0, max(train_stats['count']) * 1.5])
     ax1_twin = ax1.twinx()
     ax1_twin.plot(xx, train_stats['pos_rate'], linestyle='--', marker='o', markersize=5,
                   label='train set', lw=2)
@@ -523,14 +526,14 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
     # validation dataset
     pred_val_value_ = pd.DataFrame({'prob': pred_val_value, 'pos_rate': real_val_label})
     pred_val_value_['range'] = pd.cut(pred_val_value_['prob'], cutpoint, precision=5)
-    val_stats = bin_stat(pred_val_value_, 'range', 'pos_rate', bins, False, 'cut')
+    val_stats = bin_stat(pred_val_value_, 'range', 'pos_rate', bins, how='cut')
 
     ax2 = fig.add_subplot(1, fig_cnt, 2)
-    ax2.bar(xx, val_stats['counts'], width=0.5, color='orange', yerr=0.000001)
+    ax2.bar(xx, val_stats['count'], width=0.5, color='orange', yerr=0.000001)
     ax2.set_xticks(xx, list(range(1, bins + 1, 1)))
     ax2.set_ylabel('number', fontsize='x-large')
     ax2.set_xlabel(xlabel, fontsize='x-large')
-    ax2.set_ylim([0, max(val_stats['counts'])])
+    ax2.set_ylim([0, max(val_stats['count'])])
     ax2_twin = ax2.twinx()
     ax2_twin.plot(xx, val_stats['pos_rate'], linestyle='--', marker='o', markersize=5,
                   label='validation set', lw=2)
@@ -549,25 +552,25 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
 
     train_stats['pos_rate'] = train_stats['pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
     train_stats['accum_pos_rate'] = train_stats['accum_pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
-    train_stats['counts_proportion'] = train_stats['counts_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
-    train_stats['accum_counts'] = train_stats['accum_counts'].map(lambda x: '{:.1f}%'.format(x * 100))
+    train_stats['count_proportion'] = train_stats['count_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
+    train_stats['accum_count'] = train_stats['accum_count'].map(lambda x: '{:.1f}%'.format(x * 100))
 
     val_stats['pos_rate'] = val_stats['pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
     val_stats['accum_pos_rate'] = val_stats['accum_pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
-    val_stats['counts_proportion'] = val_stats['counts_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
-    val_stats['accum_counts'] = val_stats['accum_counts'].map(lambda x: '{:.1f}%'.format(x * 100))
+    val_stats['count_proportion'] = val_stats['count_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
+    val_stats['accum_count'] = val_stats['accum_count'].map(lambda x: '{:.1f}%'.format(x * 100))
 
     # test dataset
     if (pred_test_value is not None) & (real_test_label is not None):
         pred_test_value_ = pd.DataFrame({'prob': pred_test_value, 'pos_rate': real_test_label})
         pred_test_value_['range'] = pd.cut(pred_test_value_['prob'], cutpoint, precision=5)
-        test_stats = bin_stat(pred_test_value_, 'range', 'pos_rate', bins, False, 'cut')
+        test_stats = bin_stat(pred_test_value_, 'range', 'pos_rate', bins, how='cut')
 
         ax3 = fig.add_subplot(1, fig_cnt, 3)
-        ax3.bar(xx, test_stats['counts'], width=0.5, color='orange', yerr=0.000001)
+        ax3.bar(xx, test_stats['count'], width=0.5, color='orange', yerr=0.000001)
         ax3.set_xticks(xx, list(range(1, bins + 1, 1)))
         ax3.set_ylabel('number', fontsize='x-large')
-        ax3.set_ylim([0, max(test_stats['counts'])])
+        ax3.set_ylim([0, max(test_stats['count'])])
         ax3.set_xlabel(xlabel, fontsize='x-large')
         ax3_twin = ax3.twinx()
         ax3_twin.plot(xx, test_stats['pos_rate'], linestyle='--', marker='o', markersize=5,
@@ -587,32 +590,32 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
 
         test_stats['pos_rate'] = test_stats['pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
         test_stats['accum_pos_rate'] = test_stats['accum_pos_rate'].map(lambda x: '{:.1f}%'.format(x * 100))
-        test_stats['counts_proportion'] = test_stats['counts_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
-        test_stats['accum_counts'] = test_stats['accum_counts'].map(lambda x: '{:.1f}%'.format(x * 100))
+        test_stats['count_proportion'] = test_stats['count_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
+        test_stats['accum_count'] = test_stats['accum_count'].map(lambda x: '{:.1f}%'.format(x * 100))
 
     if (pred_test_value is not None) & (real_test_label is None):
         pred_test_value_ = pd.DataFrame({'prob': pred_test_value})
         pred_test_value_['range'] = pd.cut(pred_test_value_['prob'], cutpoint, precision=5)
-        test_stats = bin_stat(pred_test_value_, 'range', None, bins, False, 'qcut', False)
+        test_stats = bin_stat(pred_test_value_, 'range', None, bins, how='cut')
 
         ax3 = fig.add_subplot(1, fig_cnt, 3)
-        ax3.bar(xx, test_stats['counts'], width=0.5, color='orange', yerr=0.000001)
+        ax3.bar(xx, test_stats['count'], width=0.5, color='orange', yerr=0.000001)
         ax3.set_xticks(xx, list(range(1, bins + 1, 1)))
         ax3.set_ylabel('number', fontsize='x-large')
-        ax3.set_ylim([0, max(test_stats['counts']) * 1.2])
+        ax3.set_ylim([0, max(test_stats['count']) * 1.2])
 
-        for a, b in zip(xx, test_stats['counts']):
+        for a, b in zip(xx, test_stats['count']):
             plt.text(a, b + 0.05, '%.0f' % b, ha='center', va='bottom', fontsize=10)
 
-        for a, b in zip(xx, test_stats['counts']):
+        for a, b in zip(xx, test_stats['count']):
             plt.text(a, b + 0.05, '%.0f' % b, ha='center', va='bottom', fontsize=10)
 
         ax3.set_xlabel(xlabel, fontsize='x-large')
         plt.title('{}\'s sorting ability'.format(model_name), fontsize='xx-large')
         plt.legend(loc='upper right', fontsize='x-large')
 
-        test_stats['counts_proportion'] = test_stats['counts_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
-        test_stats['accum_counts'] = test_stats['accum_counts'].map(lambda x: '{:.1f}%'.format(x * 100))
+        test_stats['count_proportion'] = test_stats['count_proportion'].map(lambda x: '{:.1f}%'.format(x * 100))
+        test_stats['accum_count'] = test_stats['accum_count'].map(lambda x: '{:.1f}%'.format(x * 100))
 
     if pred_test_value is not None:
         return np.round(train_stats, 3), np.round(val_stats, 3), np.round(test_stats, 3)

@@ -1,18 +1,16 @@
 df.loc[:,'intercept'] = 1
 df['logit'] = \
-              (0.18623521268685264) * df['yys_specialCate4CalledSeconds_square_we'] + \
-              (0.2693231539326003) * df['yys_phoneLocation_we'] + \
-              (0.1004265492012875) * df['baidu_risk_blacklevel_we'] + \
-              (0.15389997455893123) * df['geo_A3_RSL_we'] + \
-              (0.16061894322345194) * df['umeng_app_score_log_we'] + \
-              (0.20584434404605428) * df['yys_specialCate6TalkNum_we'] + \
-              (-0.3664334500241267) * df['yys_specialCate5CalledSeconds_log_we'] + \
-              (-0.19413298127386833) * df['umeng_device_price_log_be'] + \
-              (0.12849073106552117) * df['yys_specialCate3CallNum_square_we'] + \
-              (-0.19389400353087058) * df['yys_specialCate5CallNum_square_we'] + \
-              (0.18674196955947903) * df['yys_monthlyAvgConsume_log_we'] + \
-              (0.5669859391491998) * df['td_final_score_log_we'] + \
-              (0.1743664247952137) * df['yys_specialCate7TalkNum_square_we'] + \
-              (-1.4266014345440654) * df['intercept'] + 0
+              (0.13878995310974052) * df['yys_specialCate7TalkNum_square_we'] + \
+              (0.13217677331344027) * df['yys_specialCate4CalledSeconds_square_we'] + \
+              (0.13901076102340498) * df['geo_A3_RSL_we'] + \
+              (0.17892375967794447) * df['yys_phoneLocation_we'] + \
+              (0.5896458485383199) * df['td_final_score_log_we'] + \
+              (0.1690423234800643) * df['umeng_device_price_log_we'] + \
+              (0.15985052330332036) * df['umeng_interest_score_log_we'] + \
+              (0.13083100923722962) * df['umeng_device_score_square_we'] + \
+              (0.09441272582165894) * df['baidu_risk_blacklevel_we'] + \
+              (0.1348725950536856) * df['umeng_location_score_log_we'] + \
+              (0.1454387032560523) * df['umeng_app_score_log_we'] + \
+              (-1.4273384439073076) * df['intercept'] + 0
 
 df['score'] = [1/(1+exp(-logit)) for logit in df['logit']]

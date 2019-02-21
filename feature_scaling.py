@@ -58,8 +58,6 @@ class UD_SCALER():
                     std = np.sqrt(self.scalr.var_[i])
 
                     if self.recoding_dict is not None and self.feat_dict is not None:
-                        # recoding_statement = "######### Scale {i} using StandardScaler ########" \
-                        #                      .format(i=ori_name)
                         recoding_statement = ""
                         recoding_statement += "\ndf['" + ori_name + "'] = (df['" + ori_name + "'] - " \
                                               + str(mean) + ") / " + str(std)
@@ -79,8 +77,6 @@ class UD_SCALER():
                     minimum = self.scalr.data_min_[i]
 
                     if self.recoding_dict is not None and self.feat_dict is not None:
-                        # recoding_statement = "######### Scale {i} using MinMaxScaler ########" \
-                        #                      .format(i=ori_name)
                         recoding_statement = ""
                         recoding_statement += "\ndf['" + ori_name + "'] = (df['" + ori_name + "'] - " \
                                               + str(minimum) + ") / " + str(maximum - minimum)
@@ -117,6 +113,7 @@ class UD_SCALER():
 
                 except:
                     raise ValueError("Scaling process incur error")
+
             else:
                 pass
 

@@ -35,9 +35,12 @@ def print_stype_line():
     print('#' * 120 + '\n')
 
 
-def write_recoding_txt(statement, file, encoding="utf-8"):
+def write_txt(statement, file, encoding="utf-8"):
     """
-    Output recoding statements
+    Output txt file
+
+    : params recoding_statement: recoding statement to output
+    : params file: output file's name
     """
     # Open a file
     fo = open(file, "w", encoding=encoding)
@@ -67,8 +70,8 @@ def passwd():
     return salt
 
 
-def cutid(df, id, file_name):
-    writer = open(file_name, 'w')
+def cutid(df, id, file):
+    writer = open(file, 'w')
     k = 1
     for line in df[id]:
         line = str(line)
@@ -106,6 +109,7 @@ def select_uncovered_data(df_label, df_feature, left_on, right_on, key='individu
     idx_all = df_all[key].tolist()
     idx_outer = set(idx_all) - set(idx_inner)
     uncovered_data = df_all.set_index(key).loc[idx_outer, :]
+
     return uncovered_data
 
 

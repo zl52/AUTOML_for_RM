@@ -47,8 +47,8 @@ def cv_check(x, y, clf_name='xgb', xgb_params=XGB_PARAMS, x_test=None, y_test=No
     : params random_state: seed
     : params silent: whether to print cv process
 
-    : params df: dataframe recording cv process
-    : params summary: statistical summary of df
+    : return df: dataframe recording cv process
+    : return summary: statistical summary of df
     """
     skf = StratifiedKFold(n_splits=cv, random_state=random_state)
     df = pd.DataFrame()
@@ -90,7 +90,7 @@ def cv_check(x, y, clf_name='xgb', xgb_params=XGB_PARAMS, x_test=None, y_test=No
 def model_toolkit(clf_name, x_train, y_train, x_val=None, y_val=None, x_test=None,
                   xgb_params=XGB_PARAMS, make_prediction=False, **kwargs):
     """
-    toolkit integrating training and predicting process for all model types
+    Toolkit integrating training and predicting process for all model types
 
     : params clf_name: model type
     : params x_train: independent variable of train set
@@ -102,7 +102,7 @@ def model_toolkit(clf_name, x_train, y_train, x_val=None, y_val=None, x_test=Non
     : params xgb_params: xgb parameters
     : params make_prediction: whether to output predictions for each set
 
-    : return: model (predictions for train, validation and test sets)
+    : return model: (predictions for train, validation and test sets)
     """
     if clf_name == 'xgb':
         if (x_val is not None) & (y_val is not None):
@@ -205,7 +205,7 @@ def model_toolkit(clf_name, x_train, y_train, x_val=None, y_val=None, x_test=Non
 def xgbt(x_train, y_train, x_val=None, y_val=None, x_test=None, params=XGB_PARAMS, num_boost_round=10000,
          early_stopping_rounds=50, make_prediction=False, **kwargs):
     """
-    toolkit of training and predicting process for xgb model
+    Training and predicting process for xgb model
 
     : params clf_name: model type
     : params x_train: independent variable of train set
@@ -219,7 +219,7 @@ def xgbt(x_train, y_train, x_val=None, y_val=None, x_test=None, params=XGB_PARAM
     : params early_stopping_rounds: early_stopping_rounds for xgb model
     : params make_prediction: whether to output predictions for each set
 
-    : return: model (predictions for train, validation and test sets)
+    : return model: (predictions for train, validation and test sets)
     """
     if (x_val is not None) & (y_val is not None):
         dtrain = xgb.DMatrix(x_train, label=y_train)
@@ -263,6 +263,9 @@ def xgbt(x_train, y_train, x_val=None, y_val=None, x_test=None, params=XGB_PARAM
 
 
 def rf(x_train, y_train, **kwargs):
+    """
+    Train random forest model
+    """
     if kwargs != {}:
         randomforest = RandomForestClassifier(**kwargs)
 
@@ -289,6 +292,9 @@ def rf(x_train, y_train, **kwargs):
 
 
 def ada(x_train, y_train, **kwargs):
+    """
+    Train adaboost model
+    """
     if kwargs != {}:
         adaboost = AdaBoostClassifier(**kwargs)
 
@@ -305,6 +311,9 @@ def ada(x_train, y_train, **kwargs):
 
 
 def gb(x_train, y_train, **kwargs):
+    """
+    Train gradient boosting model
+    """
     if kwargs != {}:
         gbdt = GradientBoostingClassifier(**kwargs)
 
@@ -328,6 +337,9 @@ def gb(x_train, y_train, **kwargs):
 
 
 def et(x_train, y_train, **kwargs):
+    """
+    Train extra tree model
+    """
     if kwargs != {}:
         extratree = ExtraTreesClassifier(**kwargs)
 
@@ -346,6 +358,9 @@ def et(x_train, y_train, **kwargs):
 
 
 def ovr(x_train, y_train, **kwargs):
+    """
+    Train oneVSrest model
+    """
     if kwargs != {}:
         est = RandomForestClassifier(**kwargs)
 
@@ -364,6 +379,9 @@ def ovr(x_train, y_train, **kwargs):
 
 
 def gnb(x_train, y_train):
+    """
+    Train gaussian naive bayesian
+    """
     gnb = GaussianNB()
     clf = gnb.fit(x_train, y_train)
 
@@ -371,9 +389,16 @@ def gnb(x_train, y_train):
 
 
 def lr(x_train, y_train, **kwargs):
+    """
+    Train logistics regression model
+
+    params **kwargs['print']: whether to output model summary
+    params **kwargs['equation_file']: equation_file's filename
+    params **kwargs['model_summary_file']: model_summary_file's filename
+    """
     x_train['intercept'] = 1
     logisticregression = sm.Logit(y_train, x_train)
-  
+
     clf = logisticregression.fit(disp=False)
     model_summary = clf.summary2(alpha=0.05)
     print(model_summary)
@@ -388,7 +413,7 @@ def lr(x_train, y_train, **kwargs):
                     output_equation_txt += "\\\n" + "(".rjust(15) + str(clf.params[idx]) + ") * df[" \
                                         + "'"+idx+"'" + "] + "
                 output_equation_txt += "0\n\ndf['score'] = [1/(1+exp(-logit)) for logit in df['logit']]"
-                write_recoding_txt(output_equation_txt, kwargs['equation_file'], encoding="utf-8")
+                write_txt(output_equation_txt, kwargs['equation_file'], encoding="utf-8")
 
                 model_summary_output = pd.DataFrame()
                 model_summary_output['Estimate'] = clf.params
@@ -404,6 +429,9 @@ def lr(x_train, y_train, **kwargs):
 
 
 def lsvc(x_train, y_train, **kwargs):
+    """
+    Train linear SVM model
+    """
     if kwargs != {}:
         linearsvc = LinearSVC(**kwargs)
 
@@ -422,6 +450,9 @@ def lsvc(x_train, y_train, **kwargs):
 
 
 def knn(x_train, y_train, **kwargs):
+    """
+    Train k-nearest neighbors model
+    """
     x_train = np.log10(x_train + 1)
 
     where_are_nan = np.isnan(x_train)
@@ -443,8 +474,18 @@ def knn(x_train, y_train, **kwargs):
     return clf
 
 
-class BAYSIAN_OPTIMIZATION():
+class BAYESIAN_OPTIMIZATION():
+    """
+    Apply bayesian optimization to tune model's parameters
+    """
     def __init__(self, x, y, init_points=20, n_iter=40, acq='ei'):
+        """
+        : params x: independent variables
+        : params y: dependent variable
+        : params init_points: number of parameter combinations when optimazation initializes
+        : params n_iter: number of iterations
+        : params acq: aquisition function
+        """
         self.x = x
         self.y = y
         self.init_points = init_points
@@ -769,7 +810,21 @@ class BAYSIAN_OPTIMIZATION():
 
 
 def model_selection(x, y, init_points=1, n_iter=1, acq='ei', cv=5, random_state=2019):
-    bo = BAYSIAN_OPTIMIZATION(x, y, init_points=init_points, n_iter=n_iter, acq=acq)
+    """
+    Select best model
+
+    : params x: independent variables
+    : params y: dependent variable
+    : params init_points: number of parameter combinations when optimazation initializes
+    : params n_iter: number of iterations
+    : params acq: aquisition function
+
+    : return best_model: best model type
+    : return best_model_params: parameter combination of best model type
+    : return score_dict: dictionary recording each model type's best score
+    : return params_dict: dictionary recording each model type's best parameter combination
+    """
+    bo = BAYESIAN_OPTIMIZATION(x, y, init_points=init_points, n_iter=n_iter, acq=acq)
     print("Apply bayesian optimization to XGBoost model\n")
     XGB_PARAMS = bo.xgb_bo()
     print('\n' + '_ ' * 60 + '\n')

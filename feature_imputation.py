@@ -74,8 +74,6 @@ class UD_IMPUTER(Imputer):
             x = imputr.transform(np.array(x).reshape(-1, 1))
 
             if write is True and self.recoding_dict is not None and self.feat_dict is not None:
-                # recoding_statement = "######### Impute {i} using {j} strategy {k} ########" \
-                #                         .format(i=ori_name, j=type(imputr), k=imputr.strategy)
                 recoding_statement = ""
                 recoding_statement += "\n" + "df.loc[:,'" + ori_name + "'] = df['" + ori_name \
                                       + "'].fillna(" + str(imputr.statistics_[0]) + ")"
@@ -110,8 +108,8 @@ class UD_IMPUTER(Imputer):
         : param most_freq_list: list of features to be imputed using most frequent value
         : param exclude_list: list of features kept the same
         """
-        feat_not_meanimp = median_list + most_freq_list
         df = df.apply(pd.to_numeric, errors='ignore').reset_index(drop=True)
+        feat_not_meanimp = median_list + most_freq_list
         col_idx = df.select_dtypes(include=[float, int, 'int64']).isnull().sum() \
             [df.select_dtypes(include=[float, int, 'int64']).isnull().sum() != 0].index
 
@@ -122,6 +120,7 @@ class UD_IMPUTER(Imputer):
                 for i in col:
                     try:
                         self.ud_fit(df[i], y=None, strategy='mean', prefix=i)
+
                     except:
                         print(i)
                         raise ValueError("Failed to impute using mean method")
