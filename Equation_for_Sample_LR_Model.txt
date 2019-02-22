@@ -1,16 +1,17 @@
 df.loc[:,'intercept'] = 1
 df['logit'] = \
-              (0.13878995310974052) * df['yys_specialCate7TalkNum_square_we'] + \
-              (0.13217677331344027) * df['yys_specialCate4CalledSeconds_square_we'] + \
-              (0.13901076102340498) * df['geo_A3_RSL_we'] + \
-              (0.17892375967794447) * df['yys_phoneLocation_we'] + \
-              (0.5896458485383199) * df['td_final_score_log_we'] + \
-              (0.1690423234800643) * df['umeng_device_price_log_we'] + \
-              (0.15985052330332036) * df['umeng_interest_score_log_we'] + \
-              (0.13083100923722962) * df['umeng_device_score_square_we'] + \
-              (0.09441272582165894) * df['baidu_risk_blacklevel_we'] + \
-              (0.1348725950536856) * df['umeng_location_score_log_we'] + \
-              (0.1454387032560523) * df['umeng_app_score_log_we'] + \
-              (-1.4273384439073076) * df['intercept'] + 0
+              (0.15399049180208982) * df['umeng_app_score_log_we'] + \
+              (0.4758799425243964) * df['td_final_score_log_we'] + \
+              (0.14278948206626826) * df['geo_A3_RSL_we'] + \
+              (0.1386594449149919) * df['yys_specialCate7TalkNum_square_we'] + \
+              (0.09782385431104501) * df['baidu_risk_blacklevel_we'] + \
+              (0.09852980910460823) * df['umeng_device_score_square_we'] + \
+              (0.12855915079033126) * df['yys_monthlyAvgConsume_log_we'] + \
+              (0.2480619298614547) * df['yys_phoneLocation_we'] + \
+              (0.14060459208909978) * df['yys_specialCate3CallNum_square_we'] + \
+              (0.11668727599660235) * df['td_final_decision_we'] + \
+              (-0.17784218660788167) * df['yys_specialCate2CalledSeconds_square_we'] + \
+              (0.1782436511497816) * df['umeng_device_price_log_we'] + \
+              (-1.4109087572785468) * df['intercept'] + 0
 
 df['score'] = [1/(1+exp(-logit)) for logit in df['logit']]
