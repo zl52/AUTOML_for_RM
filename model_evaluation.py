@@ -185,7 +185,7 @@ def get_xgb_fi(model, method='interaction', alpha=0.7, top=20):
         print('wrong method choice. (rank or interaction)')
 
 
-def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=True, extra_stat=True):
+def bin_stat(pred_, bin_range, target, bins=None, reverse=False, how='qcut', with_label=True, extra_stat=True):
     """
     Get bin range statistics
 
@@ -197,7 +197,9 @@ def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=Tru
     : params with_label: with label or not
     : params extra_stat: whether to calculate extra statistics
     """
-    bins=pred_[bin_range].nunique()
+    if bins is None:
+        bins=pred_[bin_range].nunique()
+        
     if with_label == True:
         res = (pred_.groupby(bin_range)[target].sum() / pred_.groupby(bin_range)[target].count()).to_frame()
         res = res.rename(columns={target: 'pos_rate'})
@@ -208,6 +210,7 @@ def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=Tru
         res['recall_num'] = pred_.groupby(bin_range)[target].apply(lambda x: sum(x == 0))
         res['recall_rate'] = pred_.groupby(bin_range)[target].apply(
                                           lambda x: sum(x == 0) / sum(pred_[target] == 0))
+        res = res.fillna(0)
 
         if extra_stat:
             if reverse == False:
@@ -223,7 +226,7 @@ def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=Tru
                     res['accum_recall_rate'] = [np.sum(res['recall_num'][:i]) / sum(pred_[target] == 0)
                                                 for i in range(1, bins + 1)]
                 else:
-                    print("\"how\" must chosen between qcut and cut")
+                    raise ValueError("\"how\" must chosen between qcut and cut")
 
             else:
                 if how == 'qcut':
@@ -238,6 +241,9 @@ def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=Tru
                     res['accum_count'] = [np.sum(res['count_proportion'].iloc[i:]) for i in range(bins)]
                     res['accum_recall_rate'] = [np.sum(res['recall_rate'].iloc[i:]) for i in range(bins)]
 
+                else:
+                    raise ValueError("\"how\" must chosen between qcut and cut")
+
     else:
         res = pred_.groupby(bin_range)[bin_range].count().to_frame()
         res['count_proportion'] = pred_[bin_range].value_counts(normalize=True, sort=False)
@@ -250,6 +256,7 @@ def bin_stat(pred_, bin_range, target, reverse=False, how='qcut', with_label=Tru
             else:
                 res['accum_count'] = [np.sum(res['count_proportion'].iloc[i:]) for i in range(bins)]
 
+    res = res.fillna(0)
     return np.round(res, 4)
 
 
@@ -486,18 +493,16 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
         if pred_train_value_['range'].nunique() != bins:
             bins = pred_train_value_['range'].nunique()
 
-    elif how == 'cut':
-        pred_train_value_['range'] = pd.cut(pred_train_value_['prob'], bins, precision=0, retbins=True)[0]
-
-    train_stats = bin_stat(pred_train_value_, 'range', 'pos_rate', bins)
+    cutpoint = [0] + sorted(cutpoint)[1:-1] + [1]
+    pred_train_value_['range'] = pd.cut(pred_train_value_['prob'], cutpoint, precision=5)
+    train_stats = bin_stat(pred_train_value_, 'range', 'pos_rate')
     print('cutpoints derived from train set are ', ', '.join([str(i) for i in cutpoint]))
 
     if Good_to_bad == False:
-        xx = range(bins + 1, 1, -1)
+        xx = range(bins, 0, -1)
         xlabel = 'groups(bad -> good)'
-
     else:
-        xx = range(2, bins + 2)
+        xx = range(1, bins + 1)
         xlabel = 'groups(good -> bad)'
 
     fig = plt.figure(figsize=(30, 8))
@@ -526,8 +531,7 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
     # validation dataset
     pred_val_value_ = pd.DataFrame({'prob': pred_val_value, 'pos_rate': real_val_label})
     pred_val_value_['range'] = pd.cut(pred_val_value_['prob'], cutpoint, precision=5)
-    val_stats = bin_stat(pred_val_value_, 'range', 'pos_rate', bins, how='cut')
-
+    val_stats = bin_stat(pred_val_value_, 'range', 'pos_rate', how='cut', bins=bins)
     ax2 = fig.add_subplot(1, fig_cnt, 2)
     ax2.bar(xx, val_stats['count'], width=0.5, color='orange', yerr=0.000001)
     ax2.set_xticks(xx, list(range(1, bins + 1, 1)))
@@ -564,7 +568,7 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
     if (pred_test_value is not None) & (real_test_label is not None):
         pred_test_value_ = pd.DataFrame({'prob': pred_test_value, 'pos_rate': real_test_label})
         pred_test_value_['range'] = pd.cut(pred_test_value_['prob'], cutpoint, precision=5)
-        test_stats = bin_stat(pred_test_value_, 'range', 'pos_rate', bins, how='cut')
+        test_stats = bin_stat(pred_test_value_, 'range', 'pos_rate', how='cut', bins=bins)
 
         ax3 = fig.add_subplot(1, fig_cnt, 3)
         ax3.bar(xx, test_stats['count'], width=0.5, color='orange', yerr=0.000001)
@@ -596,7 +600,7 @@ def plot_sorting_ability(pred_train_value, pred_val_value, real_train_label, rea
     if (pred_test_value is not None) & (real_test_label is None):
         pred_test_value_ = pd.DataFrame({'prob': pred_test_value})
         pred_test_value_['range'] = pd.cut(pred_test_value_['prob'], cutpoint, precision=5)
-        test_stats = bin_stat(pred_test_value_, 'range', None, bins, how='cut')
+        test_stats = bin_stat(pred_test_value_, 'range', None, how='cut', bins=bins)
 
         ax3 = fig.add_subplot(1, fig_cnt, 3)
         ax3.bar(xx, test_stats['count'], width=0.5, color='orange', yerr=0.000001)

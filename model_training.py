@@ -37,18 +37,24 @@ def cv_check(x, y, clf_name='xgb', xgb_params=XGB_PARAMS, x_test=None, y_test=No
     """
     Cross validation check
 
-    : params x: x
-    : params y: y
-    : params clf_name: model type
-    : params xgb_params: xgb parameters
-    : params x_test: x_test
-    : params y_test: y_test
-    : params cv: number of folds
-    : params random_state: seed
-    : params silent: whether to print cv process
+    Parameters
+    ----------
+    x: pd.DataFrame
+            Dataframe of independent variables
+    y: pd.Series
+            Dependent variable
+    clf_name: str
+            Model name
+    xgb_params: dict
+            xgb parameters
+    x_test: x_test
+    y_test: y_test
+    cv: number of folds
+    random_state: seed
+    silent: whether to print cv process
 
-    : return df: dataframe recording cv process
-    : return summary: statistical summary of df
+    df: dataframe recording cv process
+    summary: statistical summary of df
     """
     skf = StratifiedKFold(n_splits=cv, random_state=random_state)
     df = pd.DataFrame()
@@ -92,18 +98,23 @@ def model_toolkit(clf_name, x_train, y_train, x_val=None, y_val=None, x_test=Non
     """
     Toolkit integrating training and predicting process for all model types
 
-    : params clf_name: model type
-    : params x_train: independent variable of train set
-    : params y_train: dependent variable of train set
-    : params x_val: independent variables of validation set
-    : params y_val: dependent variable of validation set
-    : params x_test: independent variables of test set
-    : params y_test: dependent variable of test set
-    : params xgb_params: xgb parameters
-    : params make_prediction: whether to output predictions for each set
+    Parameters
+    ----------
+    clf_name: model type
+    x_train: independent variable of train set
+    y_train: dependent variable of train set
+    x_val: independent variables of validation set
+    y_val: dependent variable of validation set
+    x_test: independent variables of test set
+    y_test: dependent variable of test set
+    xgb_params: xgb parameters
+    make_prediction: whether to output predictions for each set
 
-    : return model: (predictions for train, validation and test sets)
+    model: (predictions for train, validation and test sets)
     """
+    if clf_name not in ['xgb', 'rf', 'ada', 'gb', 'et', 'ovr', 'gnb', 'lr', 'lsvc', 'knn']:
+        raise ValueError('Valid abbrs of classifiers are xgb, rf,ada,gb,et,ovr,gnb,lr,lsvc and knn\n')
+        
     if clf_name == 'xgb':
         if (x_val is not None) & (y_val is not None):
             if x_test is None:
@@ -135,54 +146,50 @@ def model_toolkit(clf_name, x_train, y_train, x_val=None, y_val=None, x_test=Non
                                          , **kwargs)
 
     else:
-        try:
-            if clf_name == 'rf':
-                clf = rf(x_train, y_train, **kwargs)
+        if clf_name == 'rf':
+            clf = rf(x_train, y_train, **kwargs)
 
-            elif clf_name == 'ada':
-                clf = ada(x_train, y_train, **kwargs)
+        elif clf_name == 'ada':
+            clf = ada(x_train, y_train, **kwargs)
 
-            elif clf_name == 'gb':
-                clf = gb(x_train, y_train, **kwargs)
+        elif clf_name == 'gb':
+            clf = gb(x_train, y_train, **kwargs)
 
-            elif clf_name == 'et':
-                clf = et(x_train, y_train, **kwargs)
+        elif clf_name == 'et':
+            clf = et(x_train, y_train, **kwargs)
 
-            elif clf_name == 'ovr':
-                clf = ovr(x_train, y_train, **kwargs)
+        elif clf_name == 'ovr':
+            clf = ovr(x_train, y_train, **kwargs)
 
-            elif clf_name == 'gnb':
-                clf = gnb(x_train, y_train)
+        elif clf_name == 'gnb':
+            clf = gnb(x_train, y_train)
 
-            elif clf_name == 'lr':
-                clf = lr(x_train, y_train, **kwargs)
-                x_val['intercept'] = 1
-                if x_test is not None:
-                    x_test['intercept'] = 1
+        elif clf_name == 'lr':
+            clf = lr(x_train, y_train, **kwargs)
+            x_val['intercept'] = 1
+            if x_test is not None:
+                x_test['intercept'] = 1
 
-            elif clf_name == 'lsvc':
-                clf = lsvc(x_train, y_train, **kwargs)
+        elif clf_name == 'lsvc':
+            clf = lsvc(x_train, y_train, **kwargs)
 
-            elif clf_name == 'knn':
-                clf = knn(x_train, y_train, **kwargs)
+        elif clf_name == 'knn':
+            clf = knn(x_train, y_train, **kwargs)
 
+        if clf_name not in ['lsvc', 'lr']:
+            pred_train_value = clf.predict_proba(x_train)[:, 1]
+            pred_val_value = clf.predict_proba(x_val)[:, 1]
+
+        else:
+            pred_train_value = clf.predict(x_train)
+            pred_val_value = clf.predict(x_val)
+
+        if x_test is not None:
             if clf_name not in ['lsvc', 'lr']:
-                pred_train_value = clf.predict_proba(x_train)[:, 1]
-                pred_val_value = clf.predict_proba(x_val)[:, 1]
+                pred_test_value = clf.predict_proba(x_test)[:, 1]
 
             else:
-                pred_train_value = clf.predict(x_train)
-                pred_val_value = clf.predict(x_val)
-
-            if x_test is not None:
-                if clf_name not in ['lsvc', 'lr']:
-                    pred_test_value = clf.predict_proba(x_test)[:, 1]
-
-                else:
-                    pred_test_value = clf.predict(x_test)
-
-        except:
-            print('Valid abbrs of classifiers are xgb, rf,ada,gb,et,ovr,gnb,lr,lsvc and knn\n')
+                pred_test_value = clf.predict(x_test)
 
     if make_prediction == True:
         if x_test is not None:
@@ -207,19 +214,20 @@ def xgbt(x_train, y_train, x_val=None, y_val=None, x_test=None, params=XGB_PARAM
     """
     Training and predicting process for xgb model
 
-    : params clf_name: model type
-    : params x_train: independent variable of train set
-    : params y_train: dependent variable of train set
-    : params x_val: independent variables of validation set
-    : params y_val: dependent variable of validation set
-    : params x_test: independent variables of test set
-    : params y_test: dependent variable of test set
-    : params params: xgb parameters
-    : params num_boost_round: num_boost_round for xgb model
-    : params early_stopping_rounds: early_stopping_rounds for xgb model
-    : params make_prediction: whether to output predictions for each set
+    Parameters
+    ----------
+    x_train: independent variable of train set
+    y_train: dependent variable of train set
+    x_val: independent variables of validation set
+    y_val: dependent variable of validation set
+    x_test: independent variables of test set
+    y_test: dependent variable of test set
+    params: xgb parameters
+    num_boost_round: num_boost_round for xgb model
+    early_stopping_rounds: early_stopping_rounds for xgb model
+    make_prediction: whether to output predictions for each set
 
-    : return model: (predictions for train, validation and test sets)
+    model: (predictions for train, validation and test sets)
     """
     if (x_val is not None) & (y_val is not None):
         dtrain = xgb.DMatrix(x_train, label=y_train)
@@ -388,46 +396,6 @@ def gnb(x_train, y_train):
     return clf
 
 
-def lr(x_train, y_train, **kwargs):
-    """
-    Train logistics regression model
-
-    params **kwargs['print']: whether to output model summary
-    params **kwargs['equation_file']: equation_file's filename
-    params **kwargs['model_summary_file']: model_summary_file's filename
-    """
-    x_train['intercept'] = 1
-    logisticregression = sm.Logit(y_train, x_train)
-
-    clf = logisticregression.fit(disp=False)
-    model_summary = clf.summary2(alpha=0.05)
-    print(model_summary)
-
-    if kwargs != {}:
-        try:
-            if kwargs['print'] == True:
-                output_equation_txt = "df.loc[:,'intercept'] = 1\n"
-                output_equation_txt += "df['logit'] = "
-
-                for idx in clf.params.index:
-                    output_equation_txt += "\\\n" + "(".rjust(15) + str(clf.params[idx]) + ") * df[" \
-                                        + "'"+idx+"'" + "] + "
-                output_equation_txt += "0\n\ndf['score'] = [1/(1+exp(-logit)) for logit in df['logit']]"
-                write_txt(output_equation_txt, kwargs['equation_file'], encoding="utf-8")
-
-                model_summary_output = pd.DataFrame()
-                model_summary_output['Estimate'] = clf.params
-                model_summary_output['SE'] = clf.bse
-                model_summary_output['T_value'] = clf.tvalues
-                model_summary_output['P_value'] = clf.pvalues
-                model_summary_output = model_summary_output.join(kwargs['vif'])
-                model_summary_output.to_excel(kwargs['model_summary_file'], index = None)
-        except:
-            raise ValueError('Params \'print\', \'equation_file\' and \'model_summary_file\' are needed')
-
-    return clf
-
-
 def lsvc(x_train, y_train, **kwargs):
     """
     Train linear SVM model
@@ -478,13 +446,20 @@ class BAYESIAN_OPTIMIZATION():
     """
     Apply bayesian optimization to tune model's parameters
     """
-    def __init__(self, x, y, init_points=20, n_iter=40, acq='ei'):
+    def __init__(self,
+                 x,
+                 y,
+                 init_points=20,
+                 n_iter=40,
+                 acq='ei'):
         """
-        : params x: independent variables
-        : params y: dependent variable
-        : params init_points: number of parameter combinations when optimazation initializes
-        : params n_iter: number of iterations
-        : params acq: aquisition function
+        Parameters
+        ----------
+        x: independent variables
+        y: dependent variable
+        init_points: number of parameter combinations when optimazation initializes
+        n_iter: number of iterations
+        acq: aquisition function
         """
         self.x = x
         self.y = y
@@ -507,8 +482,8 @@ class BAYESIAN_OPTIMIZATION():
         self.xgb_bo_optimizer.maximize(init_points=self.init_points, n_iter=self.n_iter, acq=self.acq)
         res = self.xgb_bo_optimizer.max
         XGB_PARAMS = \
-            {'objective': 'binary:logistic',
-             'eval_metric': 'auc',
+            {'objective': 'reg:linear',
+             'eval_metric': 'rmse',
              'min_child_weight': int(res['params']['min_child_weight']),
              'eta': res['params']['eta'],
              'max_depth': int(res['params']['max_depth']),
@@ -813,16 +788,18 @@ def model_selection(x, y, init_points=1, n_iter=1, acq='ei', cv=5, random_state=
     """
     Select best model
 
-    : params x: independent variables
-    : params y: dependent variable
-    : params init_points: number of parameter combinations when optimazation initializes
-    : params n_iter: number of iterations
-    : params acq: aquisition function
+    Parameters
+    ----------
+    x: independent variables
+    y: dependent variable
+    init_points: number of parameter combinations when optimazation initializes
+    n_iter: number of iterations
+    acq: aquisition function
 
-    : return best_model: best model type
-    : return best_model_params: parameter combination of best model type
-    : return score_dict: dictionary recording each model type's best score
-    : return params_dict: dictionary recording each model type's best parameter combination
+    best_model: best model type
+    best_model_params: parameter combination of best model type
+    score_dict: dictionary recording each model type's best score
+    params_dict: dictionary recording each model type's best parameter combination
     """
     bo = BAYESIAN_OPTIMIZATION(x, y, init_points=init_points, n_iter=n_iter, acq=acq)
     print("Apply bayesian optimization to XGBoost model\n")

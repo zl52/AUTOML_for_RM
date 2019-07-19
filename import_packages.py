@@ -9,8 +9,9 @@ import sys
 
 # 1.basics
 
-import pandas as pd;
 import numpy as np
+np.set_printoptions(suppress=True)
+import pandas as pd
 import os
 
 # 2.matplotlib
@@ -22,8 +23,8 @@ import matplotlib.font_manager as fm
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.pyplot import cm
 
-myfont = mpl.font_manager.FontProperties(fname="/Library/Fonts/SimHei.ttf")  # "/Library/Fonts/Songti.ttc")
-mpl.rcParams["axes.unicode_minus"] = False
+# myfont = mpl.font_manager.FontProperties(fname="/Library/Fonts/SimHei.ttf")  # "/Library/Fonts/Songti.ttc")
+# mpl.rcParams["axes.unicode_minus"] = False
 mpl.style.use('ggplot')
 
 # 3.sklearn
@@ -54,7 +55,6 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.utils.multiclass import type_of_target
-from sklearn.grid_search import GridSearchCV
 from sklearn.calibration import CalibratedClassifierCV as CCCV
 from sklearn.pipeline import Pipeline
 from sklearn.externals import joblib
@@ -73,9 +73,11 @@ from xgboost import XGBClassifier
 
 from bayes_opt import BayesianOptimization
 
+import missingno as msno
 from scipy import sparse
 from scipy import stats
 from scipy.stats import chi2_contingency
+from scipy.stats import chisquare
 from scipy.stats import ks_2samp
 from scipy.stats import beta, norm
 from scipy.optimize import leastsq

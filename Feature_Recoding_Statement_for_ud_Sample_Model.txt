@@ -1,0 +1,990 @@
+
+######################################## Recoding Statement for umeng_credit_score ########################################
+
+df['umeng_credit_score_square'] = df['umeng_credit_score'].apply(np.square)
+df.loc[df['umeng_credit_score_square'] > 512656.000000, 'umeng_credit_score_square'] = 512656.000000
+df.loc[df['umeng_credit_score_square'] < 1.000000, 'umeng_credit_score_square'] = 1.000000
+df.loc[:, 'umeng_credit_score_square_we'] = 0
+df.loc[df['umeng_credit_score_square'].isnull(), 'umeng_credit_score_square_we'] = 0.05016676576277621
+df.loc[(-np.inf <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 279841.0), 'umeng_credit_score_square_we'] = 0.04813630821239439
+df.loc[(279841.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 290521.0), 'umeng_credit_score_square_we'] = -0.03778795666902757
+df.loc[(290521.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 295936.0), 'umeng_credit_score_square_we'] = -0.16336185052858884
+df.loc[(295936.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 299209.0), 'umeng_credit_score_square_we'] = 0.03561947299957594
+df.loc[(299209.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 304704.0), 'umeng_credit_score_square_we'] = -0.24039833112617892
+df.loc[(304704.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 313600.0), 'umeng_credit_score_square_we'] = 0.270744001694723
+df.loc[(313600.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 322624.0), 'umeng_credit_score_square_we'] = 0.10216482904341523
+df.loc[(322624.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 330625.0), 'umeng_credit_score_square_we'] = 0.010732125985510845
+df.loc[(330625.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < np.inf), 'umeng_credit_score_square_we'] = 0.12079072959931295
+df['umeng_credit_score_square_we'] = (df['umeng_credit_score_square_we'] - -0.006243182815987948) / 0.14645873495327486
+
+######################################## Recoding Statement for umeng_device_os ########################################
+
+df['umeng_device_os'] = df['umeng_device_os'].fillna('<NA>*')
+df.loc[:, 'umeng_device_os_we'] = 0
+df.loc[[x in ['<NA>*'] for x in df['umeng_device_os']],'umeng_device_os_we'] = 0.08841415471096445
+df.loc[[x in ['android'] for x in df['umeng_device_os']],'umeng_device_os_we'] = 0.07089224365176516
+df.loc[[x in ['ios', 'other'] for x in df['umeng_device_os']],'umeng_device_os_we'] = -0.2272344727599364
+df['umeng_device_os_we'] = (df['umeng_device_os_we'] - -0.005191235704089689) / 0.1335500478818035
+
+######################################## Recoding Statement for yys_phoneLocation ########################################
+
+df['yys_phoneLocation'] = df['yys_phoneLocation'].fillna('<NA>*')
+df.loc[:, 'yys_phoneLocation_we'] = 0
+df.loc[[x in ['<NA>*', '内蒙古', '吉林'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.3611386476157656
+df.loc[[x in ['上海', '山西', '湖南', '青海'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.5958842344198975
+df.loc[[x in ['云南', '宁夏', '海南', '甘肃', '西藏'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.4583455797425369
+df.loc[[x in ['北京', '四川', '天津', '江苏', '黑龙江'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.4610459298098663
+df.loc[[x in ['安徽', '广东', '浙江'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.11965118315764664
+df.loc[[x in ['山东', '广西'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.09702095015600032
+df.loc[[x in ['新疆', '江西', '湖北', '福建', '重庆'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.23654275897961716
+df.loc[[x in ['河北', '辽宁', '陕西'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.3137212150530078
+df.loc[[x in ['河南', '贵州'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.284497152101653
+df['yys_phoneLocation_we'] = (df['yys_phoneLocation_we'] - -0.037975076431915486) / 0.36169579738981683
+
+######################################## Recoding Statement for yys_monthlyAvgConsume ########################################
+
+df['yys_monthlyAvgConsume_log'] = df['yys_monthlyAvgConsume'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_monthlyAvgConsume_log'] > 8.180740, 'yys_monthlyAvgConsume_log'] = 8.180740
+df.loc[df['yys_monthlyAvgConsume_log'] < 1.234920, 'yys_monthlyAvgConsume_log'] = 1.234920
+df.loc[:, 'yys_monthlyAvgConsume_log_we'] = 0
+df.loc[df['yys_monthlyAvgConsume_log'].isnull(), 'yys_monthlyAvgConsume_log_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 3.771), 'yys_monthlyAvgConsume_log_we'] = -0.28056478368393206
+df.loc[(3.771 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.191), 'yys_monthlyAvgConsume_log_we'] = -0.11276493422459455
+df.loc[(4.191 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.458), 'yys_monthlyAvgConsume_log_we'] = -0.20385402411587286
+df.loc[(4.458 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.643), 'yys_monthlyAvgConsume_log_we'] = -0.30035476883499246
+df.loc[(4.643 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.811), 'yys_monthlyAvgConsume_log_we'] = -0.18357685940656143
+df.loc[(4.811 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.959), 'yys_monthlyAvgConsume_log_we'] = -0.29858328918661026
+df.loc[(4.959 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.137), 'yys_monthlyAvgConsume_log_we'] = -0.22619443106452244
+df.loc[(5.137 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.301), 'yys_monthlyAvgConsume_log_we'] = -0.3462066701974963
+df.loc[(5.301 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.503), 'yys_monthlyAvgConsume_log_we'] = -0.03548867881571767
+df.loc[(5.503 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < np.inf), 'yys_monthlyAvgConsume_log_we'] = 0.19141617228628696
+df['yys_monthlyAvgConsume_log_we'] = (df['yys_monthlyAvgConsume_log_we'] - -0.022728224916153714) / 0.27935649817638775
+
+######################################## Recoding Statement for td_final_score ########################################
+
+df['td_final_score_log'] = df['td_final_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['td_final_score_log'] > 4.369450, 'td_final_score_log'] = 4.369450
+df.loc[df['td_final_score_log'] < -11.512930, 'td_final_score_log'] = -11.512930
+df.loc[:, 'td_final_score_log_we'] = 0
+df.loc[df['td_final_score_log'].isnull(), 'td_final_score_log_we'] = 0
+df.loc[(-np.inf <= df['td_final_score_log']) & (df['td_final_score_log'] < 0.693), 'td_final_score_log_we'] = -1.2844971115696786
+df.loc[(0.693 <= df['td_final_score_log']) & (df['td_final_score_log'] < 1.946), 'td_final_score_log_we'] = -1.0189497268089416
+df.loc[(1.946 <= df['td_final_score_log']) & (df['td_final_score_log'] < 2.303), 'td_final_score_log_we'] = -0.5785763019705696
+df.loc[(2.303 <= df['td_final_score_log']) & (df['td_final_score_log'] < 2.708), 'td_final_score_log_we'] = -0.30474061253679147
+df.loc[(2.708 <= df['td_final_score_log']) & (df['td_final_score_log'] < 2.996), 'td_final_score_log_we'] = -0.1259411788064783
+df.loc[(2.996 <= df['td_final_score_log']) & (df['td_final_score_log'] < 3.219), 'td_final_score_log_we'] = 0.07005991764901692
+df.loc[(3.219 <= df['td_final_score_log']) & (df['td_final_score_log'] < 3.421), 'td_final_score_log_we'] = 0.2745693361770028
+df.loc[(3.421 <= df['td_final_score_log']) & (df['td_final_score_log'] < 3.638), 'td_final_score_log_we'] = 0.48554312722893256
+df.loc[(3.638 <= df['td_final_score_log']) & (df['td_final_score_log'] < 3.85), 'td_final_score_log_we'] = 0.5577965277009747
+df.loc[(3.85 <= df['td_final_score_log']) & (df['td_final_score_log'] < np.inf), 'td_final_score_log_we'] = 0.8293155864793548
+df['td_final_score_log_we'] = (df['td_final_score_log_we'] - -0.12087752361407365) / 0.6556707486579159
+
+######################################## Recoding Statement for yys_specialCate5CallNum ########################################
+
+df['yys_specialCate5CallNum_square'] = df['yys_specialCate5CallNum'].apply(np.square)
+df.loc[df['yys_specialCate5CallNum_square'] > 661.500000, 'yys_specialCate5CallNum_square'] = 661.500000
+df.loc[df['yys_specialCate5CallNum_square'] < 0.000000, 'yys_specialCate5CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate5CallNum_square_we'] = 0
+df.loc[df['yys_specialCate5CallNum_square'].isnull(), 'yys_specialCate5CallNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate5CallNum_square']) & (df['yys_specialCate5CallNum_square'] < 4.0), 'yys_specialCate5CallNum_square_we'] = -0.19901964844215955
+df.loc[(4.0 <= df['yys_specialCate5CallNum_square']) & (df['yys_specialCate5CallNum_square'] < np.inf), 'yys_specialCate5CallNum_square_we'] = 0.13028017229455555
+df['yys_specialCate5CallNum_square_we'] = (df['yys_specialCate5CallNum_square_we'] - -0.019113329877558982) / 0.2561636817630853
+
+######################################## Recoding Statement for yys_specialCate2CalledSeconds ########################################
+
+df['yys_specialCate2CalledSeconds_square'] = df['yys_specialCate2CalledSeconds'].apply(np.square)
+df.loc[df['yys_specialCate2CalledSeconds_square'] > 5427991.215000, 'yys_specialCate2CalledSeconds_square'] = 5427991.215000
+df.loc[df['yys_specialCate2CalledSeconds_square'] < 0.000000, 'yys_specialCate2CalledSeconds_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CalledSeconds_square_we'] = 0
+df.loc[df['yys_specialCate2CalledSeconds_square'].isnull(), 'yys_specialCate2CalledSeconds_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate2CalledSeconds_square']) & (df['yys_specialCate2CalledSeconds_square'] < 9216.0), 'yys_specialCate2CalledSeconds_square_we'] = -0.2196636083262264
+df.loc[(9216.0 <= df['yys_specialCate2CalledSeconds_square']) & (df['yys_specialCate2CalledSeconds_square'] < np.inf), 'yys_specialCate2CalledSeconds_square_we'] = 0.20340900779270807
+df['yys_specialCate2CalledSeconds_square_we'] = (df['yys_specialCate2CalledSeconds_square_we'] - -0.021104609945050225) / 0.26909901370159695
+
+######################################## Recoding Statement for yys_specialCate2CalledNum ########################################
+
+df['yys_specialCate2CalledNum_square'] = df['yys_specialCate2CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate2CalledNum_square'] > 121.500000, 'yys_specialCate2CalledNum_square'] = 121.500000
+df.loc[df['yys_specialCate2CalledNum_square'] < 0.000000, 'yys_specialCate2CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate2CalledNum_square'].isnull(), 'yys_specialCate2CalledNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate2CalledNum_square']) & (df['yys_specialCate2CalledNum_square'] < 1.0), 'yys_specialCate2CalledNum_square_we'] = -0.20940250004548594
+df.loc[(1.0 <= df['yys_specialCate2CalledNum_square']) & (df['yys_specialCate2CalledNum_square'] < np.inf), 'yys_specialCate2CalledNum_square_we'] = 0.16713426322608857
+df['yys_specialCate2CalledNum_square_we'] = (df['yys_specialCate2CalledNum_square_we'] - -0.020044332159364558) / 0.26229079000971445
+
+######################################## Recoding Statement for yys_specialCate7TalkNum ########################################
+
+df['yys_specialCate7TalkNum_square'] = df['yys_specialCate7TalkNum'].apply(np.square)
+df.loc[df['yys_specialCate7TalkNum_square'] > 19605.295000, 'yys_specialCate7TalkNum_square'] = 19605.295000
+df.loc[df['yys_specialCate7TalkNum_square'] < 0.000000, 'yys_specialCate7TalkNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate7TalkNum_square_we'] = 0
+df.loc[df['yys_specialCate7TalkNum_square'].isnull(), 'yys_specialCate7TalkNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 1.0), 'yys_specialCate7TalkNum_square_we'] = -0.431671321129962
+df.loc[(1.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 4.0), 'yys_specialCate7TalkNum_square_we'] = -0.29183394216550723
+df.loc[(4.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 9.0), 'yys_specialCate7TalkNum_square_we'] = -0.5480000969250564
+df.loc[(9.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 16.0), 'yys_specialCate7TalkNum_square_we'] = -0.3324324709360838
+df.loc[(16.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 36.0), 'yys_specialCate7TalkNum_square_we'] = -0.1266260321604918
+df.loc[(36.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 64.0), 'yys_specialCate7TalkNum_square_we'] = -0.2862095675289192
+df.loc[(64.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 121.0), 'yys_specialCate7TalkNum_square_we'] = 0.04882163091197551
+df.loc[(121.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 225.0), 'yys_specialCate7TalkNum_square_we'] = -0.08742142755736076
+df.loc[(225.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 576.0), 'yys_specialCate7TalkNum_square_we'] = -0.0010327155940756123
+df.loc[(576.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < np.inf), 'yys_specialCate7TalkNum_square_we'] = 0.21298685472676365
+df['yys_specialCate7TalkNum_square_we'] = (df['yys_specialCate7TalkNum_square_we'] - -0.028609115229877212) / 0.31387264835540857
+
+######################################## Recoding Statement for umeng_device_price ########################################
+
+df['umeng_device_price_square'] = df['umeng_device_price'].apply(np.square)
+df.loc[df['umeng_device_price_square'] > 25.000000, 'umeng_device_price_square'] = 25.000000
+df.loc[df['umeng_device_price_square'] < 1.000000, 'umeng_device_price_square'] = 1.000000
+df.loc[:, 'umeng_device_price_square_we'] = 0
+df.loc[df['umeng_device_price_square'].isnull(), 'umeng_device_price_square_we'] = 0.038365643856691105
+df.loc[(-np.inf <= df['umeng_device_price_square']) & (df['umeng_device_price_square'] < 4.0), 'umeng_device_price_square_we'] = 0.18910447259447186
+df.loc[(4.0 <= df['umeng_device_price_square']) & (df['umeng_device_price_square'] < 9.0), 'umeng_device_price_square_we'] = 0.02707040533948481
+df.loc[(9.0 <= df['umeng_device_price_square']) & (df['umeng_device_price_square'] < 16.0), 'umeng_device_price_square_we'] = -0.06462381837560684
+df.loc[(16.0 <= df['umeng_device_price_square']) & (df['umeng_device_price_square'] < np.inf), 'umeng_device_price_square_we'] = -0.35145602608364
+df['umeng_device_price_square_we'] = (df['umeng_device_price_square_we'] - -0.00775088479264077) / 0.16345259219818625
+
+######################################## Recoding Statement for baidu_risk_blacklevel ########################################
+
+df['baidu_risk_blacklevel'] = df['baidu_risk_blacklevel'].fillna('<NA>*')
+df.loc[:, 'baidu_risk_blacklevel_we'] = 0
+df.loc[[x in ['<NA>*', 'A', 'B'] for x in df['baidu_risk_blacklevel']],'baidu_risk_blacklevel_we'] = -0.041436087377002905
+df.loc[[x in ['C', 'D'] for x in df['baidu_risk_blacklevel']],'baidu_risk_blacklevel_we'] = 0.5317615933176516
+df['baidu_risk_blacklevel_we'] = (df['baidu_risk_blacklevel_we'] - -0.0055240303369737485) / 0.13890655838898516
+
+######################################## Recoding Statement for yys_specialCate3CalledNum ########################################
+
+df['yys_specialCate3CalledNum_square'] = df['yys_specialCate3CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate3CalledNum_square'] > 150.000000, 'yys_specialCate3CalledNum_square'] = 150.000000
+df.loc[df['yys_specialCate3CalledNum_square'] < 0.000000, 'yys_specialCate3CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate3CalledNum_square'].isnull(), 'yys_specialCate3CalledNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate3CalledNum_square']) & (df['yys_specialCate3CalledNum_square'] < 4.0), 'yys_specialCate3CalledNum_square_we'] = -0.1940597406314801
+df.loc[(4.0 <= df['yys_specialCate3CalledNum_square']) & (df['yys_specialCate3CalledNum_square'] < np.inf), 'yys_specialCate3CalledNum_square_we'] = 0.10142267161489377
+df['yys_specialCate3CalledNum_square_we'] = (df['yys_specialCate3CalledNum_square_we'] - -0.01867259857009848) / 0.25321236330362573
+
+######################################## Recoding Statement for yys_specialCate5CalledNum ########################################
+
+df['yys_specialCate5CalledNum_square'] = df['yys_specialCate5CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate5CalledNum_square'] > 726.000000, 'yys_specialCate5CalledNum_square'] = 726.000000
+df.loc[df['yys_specialCate5CalledNum_square'] < 0.000000, 'yys_specialCate5CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate5CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate5CalledNum_square'].isnull(), 'yys_specialCate5CalledNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < 1.0), 'yys_specialCate5CalledNum_square_we'] = -0.1767992451966912
+df.loc[(1.0 <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < 4.0), 'yys_specialCate5CalledNum_square_we'] = -0.21334339184536258
+df.loc[(4.0 <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < np.inf), 'yys_specialCate5CalledNum_square_we'] = -0.08329026359716464
+df['yys_specialCate5CalledNum_square_we'] = (df['yys_specialCate5CalledNum_square_we'] - -0.017537716160606665) / 0.24544364552580292
+
+######################################## Recoding Statement for riskScore ########################################
+
+df['riskScore_square'] = df['riskScore'].apply(np.square)
+df.loc[df['riskScore_square'] > 33.000000, 'riskScore_square'] = 33.000000
+df.loc[df['riskScore_square'] < 0.000000, 'riskScore_square'] = 0.000000
+df.loc[:, 'riskScore_square_we'] = 0
+df.loc[df['riskScore_square'].isnull(), 'riskScore_square_we'] = 0
+df.loc[(-np.inf <= df['riskScore_square']) & (df['riskScore_square'] < 1.0), 'riskScore_square_we'] = -0.02254096762350175
+df.loc[(1.0 <= df['riskScore_square']) & (df['riskScore_square'] < 4.0), 'riskScore_square_we'] = 0.15057981005315585
+df.loc[(4.0 <= df['riskScore_square']) & (df['riskScore_square'] < 9.0), 'riskScore_square_we'] = -0.2351693896395878
+df.loc[(9.0 <= df['riskScore_square']) & (df['riskScore_square'] < np.inf), 'riskScore_square_we'] = 0.3206089620006465
+df['riskScore_square_we'] = (df['riskScore_square_we'] - -0.008047448043025922) / 0.16623906895455703
+
+######################################## Recoding Statement for geo_B7_RSL ########################################
+
+df['geo_B7_RSL'] = df['geo_B7_RSL'].fillna('<NA>*')
+df.loc[:, 'geo_B7_RSL_we'] = 0
+df.loc[[x in ['<NA>*', '\\0\\""'] for x in df['geo_B7_RSL']],'geo_B7_RSL_we'] = 0.0228753103403197
+df.loc[[x in ['\\1\\""', '\\4\\""', '\\5\\""'] for x in df['geo_B7_RSL']],'geo_B7_RSL_we'] = -0.24848069318460694
+df['geo_B7_RSL_we'] = (df['geo_B7_RSL_we'] - -0.001764699292909962) / 0.07796848380059243
+
+######################################## Recoding Statement for yys_specialCate4CalledNum ########################################
+
+df['yys_specialCate4CalledNum_log'] = df['yys_specialCate4CalledNum'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_specialCate4CalledNum_log'] > 7.837160, 'yys_specialCate4CalledNum_log'] = 7.837160
+df.loc[df['yys_specialCate4CalledNum_log'] < -11.512930, 'yys_specialCate4CalledNum_log'] = -11.512930
+df.loc[:, 'yys_specialCate4CalledNum_log_we'] = 0
+df.loc[df['yys_specialCate4CalledNum_log'].isnull(), 'yys_specialCate4CalledNum_log_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 0.0), 'yys_specialCate4CalledNum_log_we'] = -0.2093984707849963
+df.loc[(0.0 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 1.099), 'yys_specialCate4CalledNum_log_we'] = -0.19820292130317857
+df.loc[(1.099 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 1.609), 'yys_specialCate4CalledNum_log_we'] = -0.2385600569146274
+df.loc[(1.609 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 2.079), 'yys_specialCate4CalledNum_log_we'] = -0.12043558837494064
+df.loc[(2.079 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 2.565), 'yys_specialCate4CalledNum_log_we'] = 0.1058330131980293
+df.loc[(2.565 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 3.091), 'yys_specialCate4CalledNum_log_we'] = -0.1380093450199638
+df.loc[(3.091 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 3.689), 'yys_specialCate4CalledNum_log_we'] = -0.36230883219285936
+df.loc[(3.689 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < 4.477), 'yys_specialCate4CalledNum_log_we'] = -0.2333373185769026
+df.loc[(4.477 <= df['yys_specialCate4CalledNum_log']) & (df['yys_specialCate4CalledNum_log'] < np.inf), 'yys_specialCate4CalledNum_log_we'] = -0.14893436804248567
+df['yys_specialCate4CalledNum_log_we'] = (df['yys_specialCate4CalledNum_log_we'] - -0.02024180361087169) / 0.263692789722013
+
+######################################## Recoding Statement for yys_specialCate4CallNum ########################################
+
+df['yys_specialCate4CallNum_sqrt'] = df['yys_specialCate4CallNum'].apply(lambda x: np.sqrt(max(x, 0)))
+df.loc[df['yys_specialCate4CallNum_sqrt'] > 26.166000, 'yys_specialCate4CallNum_sqrt'] = 26.166000
+df.loc[df['yys_specialCate4CallNum_sqrt'] < 0.000000, 'yys_specialCate4CallNum_sqrt'] = 0.000000
+df.loc[:, 'yys_specialCate4CallNum_sqrt_we'] = 0
+df.loc[df['yys_specialCate4CallNum_sqrt'].isnull(), 'yys_specialCate4CallNum_sqrt_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 1.414), 'yys_specialCate4CallNum_sqrt_we'] = -0.2834688743760869
+df.loc[(1.414 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 2.0), 'yys_specialCate4CallNum_sqrt_we'] = -0.14147315173915176
+df.loc[(2.0 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 2.449), 'yys_specialCate4CallNum_sqrt_we'] = -0.08764143503850245
+df.loc[(2.449 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 3.162), 'yys_specialCate4CallNum_sqrt_we'] = -0.23298445230188708
+df.loc[(3.162 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 4.0), 'yys_specialCate4CallNum_sqrt_we'] = -0.03851580884881596
+df.loc[(4.0 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 5.196), 'yys_specialCate4CallNum_sqrt_we'] = -0.14279107732247834
+df.loc[(5.196 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 6.856), 'yys_specialCate4CallNum_sqrt_we'] = -0.23118750662518536
+df.loc[(6.856 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < 9.899), 'yys_specialCate4CallNum_sqrt_we'] = -0.16996826835694726
+df.loc[(9.899 <= df['yys_specialCate4CallNum_sqrt']) & (df['yys_specialCate4CallNum_sqrt'] < np.inf), 'yys_specialCate4CallNum_sqrt_we'] = -0.04473271955140285
+df['yys_specialCate4CallNum_sqrt_we'] = (df['yys_specialCate4CallNum_sqrt_we'] - -0.019174290673751995) / 0.25667535845245126
+
+######################################## Recoding Statement for yys_specialCate2CallNum ########################################
+
+df['yys_specialCate2CallNum_square'] = df['yys_specialCate2CallNum'].apply(np.square)
+df.loc[df['yys_specialCate2CallNum_square'] > 54.000000, 'yys_specialCate2CallNum_square'] = 54.000000
+df.loc[df['yys_specialCate2CallNum_square'] < 0.000000, 'yys_specialCate2CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CallNum_square_we'] = 0
+df.loc[df['yys_specialCate2CallNum_square'].isnull(), 'yys_specialCate2CallNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate2CallNum_square']) & (df['yys_specialCate2CallNum_square'] < np.inf), 'yys_specialCate2CallNum_square_we'] = -0.17226065623952666
+df['yys_specialCate2CallNum_square_we'] = (df['yys_specialCate2CallNum_square_we'] - -0.017404997475512683) / 0.24451315312290958
+
+######################################## Recoding Statement for yys_specialCate6TalkNum ########################################
+
+df.loc[df['yys_specialCate6TalkNum'] > 300.565000, 'yys_specialCate6TalkNum'] = 300.565000
+df.loc[df['yys_specialCate6TalkNum'] < 0.000000, 'yys_specialCate6TalkNum'] = 0.000000
+df.loc[:, 'yys_specialCate6TalkNum_we'] = 0
+df.loc[df['yys_specialCate6TalkNum'].isnull(), 'yys_specialCate6TalkNum_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 1.0), 'yys_specialCate6TalkNum_we'] = -0.10088926138896451
+df.loc[(1.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 3.0), 'yys_specialCate6TalkNum_we'] = -0.12275884381628048
+df.loc[(3.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 5.0), 'yys_specialCate6TalkNum_we'] = -0.1925778202655375
+df.loc[(5.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 7.0), 'yys_specialCate6TalkNum_we'] = -0.2022875963430263
+df.loc[(7.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 10.0), 'yys_specialCate6TalkNum_we'] = -0.29680866582824195
+df.loc[(10.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 14.0), 'yys_specialCate6TalkNum_we'] = -0.3538039460523346
+df.loc[(14.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 20.0), 'yys_specialCate6TalkNum_we'] = -0.26748900633143735
+df.loc[(20.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 35.0), 'yys_specialCate6TalkNum_we'] = -0.011688928473078628
+df.loc[(35.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < np.inf), 'yys_specialCate6TalkNum_we'] = -0.14339418766687026
+df['yys_specialCate6TalkNum_we'] = (df['yys_specialCate6TalkNum_we'] - -0.019548569743733073) / 0.25921642241506226
+
+######################################## Recoding Statement for yys_specialCate3CallNum ########################################
+
+df['yys_specialCate3CallNum_square'] = df['yys_specialCate3CallNum'].apply(np.square)
+df.loc[df['yys_specialCate3CallNum_square'] > 181.500000, 'yys_specialCate3CallNum_square'] = 181.500000
+df.loc[df['yys_specialCate3CallNum_square'] < 0.000000, 'yys_specialCate3CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CallNum_square_we'] = 0
+df.loc[df['yys_specialCate3CallNum_square'].isnull(), 'yys_specialCate3CallNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate3CallNum_square']) & (df['yys_specialCate3CallNum_square'] < 4.0), 'yys_specialCate3CallNum_square_we'] = -0.23239466748997278
+df.loc[(4.0 <= df['yys_specialCate3CallNum_square']) & (df['yys_specialCate3CallNum_square'] < np.inf), 'yys_specialCate3CallNum_square_we'] = 0.49492328588246476
+df['yys_specialCate3CallNum_square_we'] = (df['yys_specialCate3CallNum_square_we'] - -0.02507058634506845) / 0.29340017724803463
+
+######################################## Recoding Statement for umeng_device_score ########################################
+
+df['umeng_device_score_square'] = df['umeng_device_score'].apply(np.square)
+df.loc[df['umeng_device_score_square'] > 611524.000000, 'umeng_device_score_square'] = 611524.000000
+df.loc[df['umeng_device_score_square'] < 146689.000000, 'umeng_device_score_square'] = 146689.000000
+df.loc[:, 'umeng_device_score_square_we'] = 0
+df.loc[df['umeng_device_score_square'].isnull(), 'umeng_device_score_square_we'] = 0.05147892970908418
+df.loc[(-np.inf <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 276676.0), 'umeng_device_score_square_we'] = 0.012131706339934134
+df.loc[(276676.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 330625.0), 'umeng_device_score_square_we'] = -0.015387499494630396
+df.loc[(330625.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 348100.0), 'umeng_device_score_square_we'] = 0.02591128619854864
+df.loc[(348100.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 362404.0), 'umeng_device_score_square_we'] = -0.22906602302468326
+df.loc[(362404.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 403225.0), 'umeng_device_score_square_we'] = 0.11564766254624115
+df.loc[(403225.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 419904.0), 'umeng_device_score_square_we'] = 0.1134002331770259
+df.loc[(419904.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 455625.0), 'umeng_device_score_square_we'] = -0.07399353572326292
+df.loc[(455625.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 463761.0), 'umeng_device_score_square_we'] = -0.042699165215638955
+df.loc[(463761.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 495616.0), 'umeng_device_score_square_we'] = -0.1126642826994454
+df.loc[(495616.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < np.inf), 'umeng_device_score_square_we'] = 0.33370941678935484
+df['umeng_device_score_square_we'] = (df['umeng_device_score_square_we'] - -0.003964143791292245) / 0.11673963739252456
+
+######################################## Recoding Statement for yys_specialCate5CalledSeconds ########################################
+
+df['yys_specialCate5CalledSeconds_log'] = df['yys_specialCate5CalledSeconds'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_specialCate5CalledSeconds_log'] > 10.533220, 'yys_specialCate5CalledSeconds_log'] = 10.533220
+df.loc[df['yys_specialCate5CalledSeconds_log'] < -11.512930, 'yys_specialCate5CalledSeconds_log'] = -11.512930
+df.loc[:, 'yys_specialCate5CalledSeconds_log_we'] = 0
+df.loc[df['yys_specialCate5CalledSeconds_log'].isnull(), 'yys_specialCate5CalledSeconds_log_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < 2.565), 'yys_specialCate5CalledSeconds_log_we'] = -0.18116036792178383
+df.loc[(2.565 <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < 4.918), 'yys_specialCate5CalledSeconds_log_we'] = -0.06151883542099822
+df.loc[(4.918 <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < np.inf), 'yys_specialCate5CalledSeconds_log_we'] = -0.21589001894258703
+df['yys_specialCate5CalledSeconds_log_we'] = (df['yys_specialCate5CalledSeconds_log_we'] - -0.01774182695124106) / 0.2468663606068417
+
+######################################## Recoding Statement for umeng_id_score ########################################
+
+df['umeng_id_score_square'] = df['umeng_id_score'].apply(np.square)
+df.loc[df['umeng_id_score_square'] > 722500.000000, 'umeng_id_score_square'] = 722500.000000
+df.loc[df['umeng_id_score_square'] < 106276.000000, 'umeng_id_score_square'] = 106276.000000
+df.loc[:, 'umeng_id_score_square_we'] = 0
+df.loc[df['umeng_id_score_square'].isnull(), 'umeng_id_score_square_we'] = 0.035078284126081695
+df.loc[(-np.inf <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 260100.0), 'umeng_id_score_square_we'] = -0.06669173378383128
+df.loc[(260100.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 283024.0), 'umeng_id_score_square_we'] = -0.015852535846612333
+df.loc[(283024.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 605284.0), 'umeng_id_score_square_we'] = 0.13254843693889934
+df.loc[(605284.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < np.inf), 'umeng_id_score_square_we'] = 0.009119655869942445
+df['umeng_id_score_square_we'] = (df['umeng_id_score_square_we'] - -0.001430133733457833) / 0.07001260402795732
+
+######################################## Recoding Statement for yys_fakeCallNum ########################################
+
+df['yys_fakeCallNum_square'] = df['yys_fakeCallNum'].apply(np.square)
+df.loc[df['yys_fakeCallNum_square'] > 9118.000000, 'yys_fakeCallNum_square'] = 9118.000000
+df.loc[df['yys_fakeCallNum_square'] < 0.000000, 'yys_fakeCallNum_square'] = 0.000000
+df.loc[:, 'yys_fakeCallNum_square_we'] = 0
+df.loc[df['yys_fakeCallNum_square'].isnull(), 'yys_fakeCallNum_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < 1.0), 'yys_fakeCallNum_square_we'] = -0.2935713316118929
+df.loc[(1.0 <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < 4.0), 'yys_fakeCallNum_square_we'] = -0.2981399285054394
+df.loc[(4.0 <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < 9.0), 'yys_fakeCallNum_square_we'] = -0.10502866429010485
+df.loc[(9.0 <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < 36.0), 'yys_fakeCallNum_square_we'] = -0.002599966643647034
+df.loc[(36.0 <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < 169.0), 'yys_fakeCallNum_square_we'] = -0.010591127193990541
+df.loc[(169.0 <= df['yys_fakeCallNum_square']) & (df['yys_fakeCallNum_square'] < np.inf), 'yys_fakeCallNum_square_we'] = 0.15783849181483905
+df['yys_fakeCallNum_square_we'] = (df['yys_fakeCallNum_square_we'] - -0.023314003810086643) / 0.28294189674289927
+
+######################################## Recoding Statement for yys_friendMap ########################################
+
+df['yys_friendMap'] = df['yys_friendMap'].fillna('<NA>*')
+df.loc[:, 'yys_friendMap_we'] = 0
+df.loc[[x in ['<NA>*', '内蒙古', '吉林'] for x in df['yys_friendMap']],'yys_friendMap_we'] = 0.358016556206639
+df.loc[[x in ['上海', '山西', '青海'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.609919552536281
+df.loc[[x in ['云南', '宁夏', '海南', '甘肃'] for x in df['yys_friendMap']],'yys_friendMap_we'] = 0.463905957149373
+df.loc[[x in ['全国', '贵州'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.38349072723237704
+df.loc[[x in ['北京', '江西', '浙江', '湖北'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.22126156274449776
+df.loc[[x in ['四川', '湖南', '陕西', '黑龙江'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.5098360939792983
+df.loc[[x in ['天津', '安徽', '广东', '江苏', '重庆'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.07681828614429317
+df.loc[[x in ['山东', '广西'] for x in df['yys_friendMap']],'yys_friendMap_we'] = 0.07229855749147401
+df.loc[[x in ['新疆', '河北', '河南'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.35413622716521087
+df.loc[[x in ['福建', '西藏', '辽宁'] for x in df['yys_friendMap']],'yys_friendMap_we'] = -0.27344731591506805
+df['yys_friendMap_we'] = (df['yys_friendMap_we'] - -0.0371514609786483) / 0.3577481534011281
+
+######################################## Recoding Statement for yys_specialCate3CalledSeconds ########################################
+
+df['yys_specialCate3CalledSeconds_square'] = df['yys_specialCate3CalledSeconds'].apply(np.square)
+df.loc[df['yys_specialCate3CalledSeconds_square'] > 6055807.740000, 'yys_specialCate3CalledSeconds_square'] = 6055807.740000
+df.loc[df['yys_specialCate3CalledSeconds_square'] < 0.000000, 'yys_specialCate3CalledSeconds_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CalledSeconds_square_we'] = 0
+df.loc[df['yys_specialCate3CalledSeconds_square'].isnull(), 'yys_specialCate3CalledSeconds_square_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate3CalledSeconds_square']) & (df['yys_specialCate3CalledSeconds_square'] < 14089.9), 'yys_specialCate3CalledSeconds_square_we'] = -0.21812025195847162
+df.loc[(14089.9 <= df['yys_specialCate3CalledSeconds_square']) & (df['yys_specialCate3CalledSeconds_square'] < np.inf), 'yys_specialCate3CalledSeconds_square_we'] = 0.19141617228628696
+df['yys_specialCate3CalledSeconds_square_we'] = (df['yys_specialCate3CalledSeconds_square_we'] - -0.020880500403161417) / 0.2676751949454103
+
+######################################## Recoding Statement for umeng_device_rank ########################################
+
+df['umeng_device_rank_square'] = df['umeng_device_rank'].apply(np.square)
+df.loc[df['umeng_device_rank_square'] > 9.000000, 'umeng_device_rank_square'] = 9.000000
+df.loc[df['umeng_device_rank_square'] < 0.000000, 'umeng_device_rank_square'] = 0.000000
+df.loc[:, 'umeng_device_rank_square_we'] = 0
+df.loc[df['umeng_device_rank_square'].isnull(), 'umeng_device_rank_square_we'] = 0.08689735691262684
+df.loc[(-np.inf <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < 1.0), 'umeng_device_rank_square_we'] = -0.010764475980223589
+df.loc[(1.0 <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < 4.0), 'umeng_device_rank_square_we'] = -0.08609287245244349
+df.loc[(4.0 <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < np.inf), 'umeng_device_rank_square_we'] = -0.06293551150675887
+df['umeng_device_rank_square_we'] = (df['umeng_device_rank_square_we'] - -0.0008374478744042526) / 0.05357522831887681
+
+######################################## Recoding Statement for umeng_location_score ########################################
+
+df['umeng_location_score_log'] = df['umeng_location_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_location_score_log'] > 6.680850, 'umeng_location_score_log'] = 6.680850
+df.loc[df['umeng_location_score_log'] < 6.127070, 'umeng_location_score_log'] = 6.127070
+df.loc[:, 'umeng_location_score_log_we'] = 0
+df.loc[df['umeng_location_score_log'].isnull(), 'umeng_location_score_log_we'] = 0.032997032992235706
+df.loc[(-np.inf <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.295), 'umeng_location_score_log_we'] = -0.15246148235416085
+df.loc[(6.295 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.34), 'umeng_location_score_log_we'] = 0.00866371148725757
+df.loc[(6.34 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.361), 'umeng_location_score_log_we'] = 0.08953679721692898
+df.loc[(6.361 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.378), 'umeng_location_score_log_we'] = -0.13779121872397393
+df.loc[(6.378 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.404), 'umeng_location_score_log_we'] = 0.014701065708137668
+df.loc[(6.404 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.439), 'umeng_location_score_log_we'] = 0.2689161913655232
+df.loc[(6.439 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.465), 'umeng_location_score_log_we'] = -0.10867577082276536
+df.loc[(6.465 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.482), 'umeng_location_score_log_we'] = -0.1516119630537367
+df.loc[(6.482 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.515), 'umeng_location_score_log_we'] = -0.17180842718023645
+df.loc[(6.515 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < np.inf), 'umeng_location_score_log_we'] = 0.29989866483225674
+df['umeng_location_score_log_we'] = (df['umeng_location_score_log_we'] - -0.006921082281967623) / 0.1541603435909073
+
+######################################## Recoding Statement for geo_A3_RSL ########################################
+
+df['geo_A3_RSL'] = df['geo_A3_RSL'].fillna('<NA>*')
+df.loc[:, 'geo_A3_RSL_we'] = 0
+df.loc[[x in ['<NA>*', '\\3\\""', '\\99\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = -0.0980506318577126
+df.loc[[x in ['\\03\\""', '\\04\\""', '\\1\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = 0.3462087322351922
+df.loc[[x in ['\\2\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = 0.20752534470124157
+df['geo_A3_RSL_we'] = (df['geo_A3_RSL_we'] - -0.007608600217459068) / 0.16170063697639583
+
+######################################## Recoding Statement for yys_specialCate4CalledSeconds ########################################
+
+df['yys_specialCate4CalledSeconds_log'] = df['yys_specialCate4CalledSeconds'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_specialCate4CalledSeconds_log'] > 12.199600, 'yys_specialCate4CalledSeconds_log'] = 12.199600
+df.loc[df['yys_specialCate4CalledSeconds_log'] < -11.512930, 'yys_specialCate4CalledSeconds_log'] = -11.512930
+df.loc[:, 'yys_specialCate4CalledSeconds_log_we'] = 0
+df.loc[df['yys_specialCate4CalledSeconds_log'].isnull(), 'yys_specialCate4CalledSeconds_log_we'] = 0.368675062674029
+df.loc[(-np.inf <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 4.257), 'yys_specialCate4CalledSeconds_log_we'] = -0.2779016662644483
+df.loc[(4.257 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 5.236), 'yys_specialCate4CalledSeconds_log_we'] = -0.19728595494950404
+df.loc[(5.236 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 5.914), 'yys_specialCate4CalledSeconds_log_we'] = -0.16174332633506674
+df.loc[(5.914 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 6.487), 'yys_specialCate4CalledSeconds_log_we'] = -0.03921307790670012
+df.loc[(6.487 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 7.059), 'yys_specialCate4CalledSeconds_log_we'] = -0.011802217246282488
+df.loc[(7.059 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 7.592), 'yys_specialCate4CalledSeconds_log_we'] = -0.12974059524889298
+df.loc[(7.592 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 8.215), 'yys_specialCate4CalledSeconds_log_we'] = -0.1799536670371411
+df.loc[(8.215 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < 8.985), 'yys_specialCate4CalledSeconds_log_we'] = -0.26634249029132334
+df.loc[(8.985 <= df['yys_specialCate4CalledSeconds_log']) & (df['yys_specialCate4CalledSeconds_log'] < np.inf), 'yys_specialCate4CalledSeconds_log_we'] = -0.20565420462002054
+df['yys_specialCate4CalledSeconds_log_we'] = (df['yys_specialCate4CalledSeconds_log_we'] - -0.019189422178780023) / 0.25676076626583155
+
+######################################## Recoding Statement for umeng_interest_score ########################################
+
+df['umeng_interest_score_log'] = df['umeng_interest_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_interest_score_log'] > 6.635950, 'umeng_interest_score_log'] = 6.635950
+df.loc[df['umeng_interest_score_log'] < -11.512930, 'umeng_interest_score_log'] = -11.512930
+df.loc[:, 'umeng_interest_score_log_we'] = 0
+df.loc[df['umeng_interest_score_log'].isnull(), 'umeng_interest_score_log_we'] = 0.06785584797581057
+df.loc[(-np.inf <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.188), 'umeng_interest_score_log_we'] = 0.08491967580468873
+df.loc[(6.188 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.254), 'umeng_interest_score_log_we'] = 0.0367076123887715
+df.loc[(6.254 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.306), 'umeng_interest_score_log_we'] = 0.1646189535684942
+df.loc[(6.306 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.342), 'umeng_interest_score_log_we'] = 0.09095630539532236
+df.loc[(6.342 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.372), 'umeng_interest_score_log_we'] = -0.18107399578405292
+df.loc[(6.372 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.389), 'umeng_interest_score_log_we'] = -0.23135224674801472
+df.loc[(6.389 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.409), 'umeng_interest_score_log_we'] = -0.01700795649390655
+df.loc[(6.409 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < np.inf), 'umeng_interest_score_log_we'] = -0.23761286290585215
+df['umeng_interest_score_log_we'] = (df['umeng_interest_score_log_we'] - -0.00468128350690149) / 0.12680973714236543
+
+######################################## Recoding Statement for td_final_decision ########################################
+
+df['td_final_decision'] = df['td_final_decision'].fillna('<NA>*')
+df.loc[:, 'td_final_decision_we'] = 0
+df.loc[[x in ['<NA>*'] for x in df['td_final_decision']],'td_final_decision_we'] = 0.0
+df.loc[[x in ['Accept'] for x in df['td_final_decision']],'td_final_decision_we'] = -0.6165591933061799
+df.loc[[x in ['Review'] for x in df['td_final_decision']],'td_final_decision_we'] = 0.43949096462997506
+df['td_final_decision_we'] = (df['td_final_decision_we'] - -0.0812136269484508) / 0.527974331273427
+
+######################################## Recoding Statement for umeng_app_score ########################################
+
+df['umeng_app_score_log'] = df['umeng_app_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_app_score_log'] > 6.618740, 'umeng_app_score_log'] = 6.618740
+df.loc[df['umeng_app_score_log'] < -11.512930, 'umeng_app_score_log'] = -11.512930
+df.loc[:, 'umeng_app_score_log_we'] = 0
+df.loc[df['umeng_app_score_log'].isnull(), 'umeng_app_score_log_we'] = 0.041521927051960436
+df.loc[(-np.inf <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.269), 'umeng_app_score_log_we'] = -0.23759200262799235
+df.loc[(6.269 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.282), 'umeng_app_score_log_we'] = -0.19039881823825772
+df.loc[(6.282 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.292), 'umeng_app_score_log_we'] = -0.33557909702207417
+df.loc[(6.292 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.297), 'umeng_app_score_log_we'] = 0.2813414312720388
+df.loc[(6.297 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.319), 'umeng_app_score_log_we'] = -0.03623883513345463
+df.loc[(6.319 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.324), 'umeng_app_score_log_we'] = 0.380479151491596
+df.loc[(6.324 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.366), 'umeng_app_score_log_we'] = 0.19111659003484924
+df.loc[(6.366 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < np.inf), 'umeng_app_score_log_we'] = 0.5135049015946005
+df['umeng_app_score_log_we'] = (df['umeng_app_score_log_we'] - -0.0195407337142219) / 0.2595731372272741
+
+######################################## Recoding Statement for umeng_credit_score ########################################
+
+df['umeng_credit_score_square'] = df['umeng_credit_score'].apply(np.square)
+df.loc[df['umeng_credit_score_square'] > 512656.000000, 'umeng_credit_score_square'] = 512656.000000
+df.loc[df['umeng_credit_score_square'] < 1.000000, 'umeng_credit_score_square'] = 1.000000
+df.loc[:, 'umeng_credit_score_square_be'] = np.nan
+df.loc[df['umeng_credit_score_square'].isnull(), 'umeng_credit_score_square_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 280900.0), 'umeng_credit_score_square_be'] = 0
+df.loc[(280900.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 290521.0), 'umeng_credit_score_square_be'] = 1
+df.loc[(290521.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 295936.0), 'umeng_credit_score_square_be'] = 2
+df.loc[(295936.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 299209.0), 'umeng_credit_score_square_be'] = 3
+df.loc[(299209.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 304704.0), 'umeng_credit_score_square_be'] = 4
+df.loc[(304704.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 313600.0), 'umeng_credit_score_square_be'] = 5
+df.loc[(313600.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 322624.0), 'umeng_credit_score_square_be'] = 6
+df.loc[(322624.0 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < 331660.9), 'umeng_credit_score_square_be'] = 7
+df.loc[(331660.9 <= df['umeng_credit_score_square']) & (df['umeng_credit_score_square'] < np.inf), 'umeng_credit_score_square_be'] = 8
+df.loc[:,'umeng_credit_score_square_be'] = df['umeng_credit_score_square_be'].fillna(3.8950786056049216)
+df['umeng_credit_score_square_be'] = (df['umeng_credit_score_square_be'] - 3.8950786056049216) / 2.3184479347404854
+
+######################################## Recoding Statement for umeng_device_os ########################################
+
+df['umeng_device_os'] = df['umeng_device_os'].fillna('<NA>*')
+df.loc[:, 'umeng_device_os_we'] = 0
+df.loc[[x in ['<NA>*'] for x in df['umeng_device_os']],'umeng_device_os_we'] = 0.037452131674434556
+df.loc[[x in ['android'] for x in df['umeng_device_os']],'umeng_device_os_we'] = 0.09878206951405363
+df.loc[[x in ['ios', 'other'] for x in df['umeng_device_os']],'umeng_device_os_we'] = -0.2648719725362945
+df['umeng_device_os_we'] = (df['umeng_device_os_we'] - -0.0066316551486397726) / 0.15516664460151694
+
+######################################## Recoding Statement for yys_phoneLocation ########################################
+
+df['yys_phoneLocation'] = df['yys_phoneLocation'].fillna('<NA>*')
+df.loc[:, 'yys_phoneLocation_we'] = 0
+df.loc[[x in ['<NA>*', '吉林', '广西'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.27751402401448244
+df.loc[[x in ['上海', '四川', '山西', '湖南', '西藏'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.5744258309176077
+df.loc[[x in ['云南', '内蒙古', '宁夏', '海南', '甘肃'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.5069465815365913
+df.loc[[x in ['北京', '河北', '陕西'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.49052154925840963
+df.loc[[x in ['天津', '江西', '河南', '湖北'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.20789770263392693
+df.loc[[x in ['安徽', '福建', '重庆'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.06536914601080449
+df.loc[[x in ['山东', '浙江'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = 0.019630446998106725
+df.loc[[x in ['广东'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.11806544930265585
+df.loc[[x in ['新疆', '贵州', '辽宁'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.304419269624549
+df.loc[[x in ['江苏', '青海', '黑龙江'] for x in df['yys_phoneLocation']],'yys_phoneLocation_we'] = -0.40203094641715303
+df['yys_phoneLocation_we'] = (df['yys_phoneLocation_we'] - -0.03254442948055052) / 0.34497207496572246
+
+######################################## Recoding Statement for yys_monthlyAvgConsume ########################################
+
+df['yys_monthlyAvgConsume_log'] = df['yys_monthlyAvgConsume'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_monthlyAvgConsume_log'] > 8.180740, 'yys_monthlyAvgConsume_log'] = 8.180740
+df.loc[df['yys_monthlyAvgConsume_log'] < 1.368670, 'yys_monthlyAvgConsume_log'] = 1.368670
+df.loc[:, 'yys_monthlyAvgConsume_log_we'] = 0
+df.loc[df['yys_monthlyAvgConsume_log'].isnull(), 'yys_monthlyAvgConsume_log_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 3.746), 'yys_monthlyAvgConsume_log_we'] = -0.2830280796432313
+df.loc[(3.746 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.184), 'yys_monthlyAvgConsume_log_we'] = -0.07455676806159446
+df.loc[(4.184 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.452), 'yys_monthlyAvgConsume_log_we'] = -0.17828162602496456
+df.loc[(4.452 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.642), 'yys_monthlyAvgConsume_log_we'] = -0.3470948327941269
+df.loc[(4.642 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.809), 'yys_monthlyAvgConsume_log_we'] = -0.2212203257695751
+df.loc[(4.809 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 4.963), 'yys_monthlyAvgConsume_log_we'] = -0.15304251668001573
+df.loc[(4.963 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.145), 'yys_monthlyAvgConsume_log_we'] = -0.18104024846404426
+df.loc[(5.145 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.298), 'yys_monthlyAvgConsume_log_we'] = -0.2830280796432313
+df.loc[(5.298 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < 5.506), 'yys_monthlyAvgConsume_log_we'] = -0.022435218287405842
+df.loc[(5.506 <= df['yys_monthlyAvgConsume_log']) & (df['yys_monthlyAvgConsume_log'] < np.inf), 'yys_monthlyAvgConsume_log_we'] = 0.19005721613991217
+df['yys_monthlyAvgConsume_log_we'] = (df['yys_monthlyAvgConsume_log_we'] - -0.01557157176008269) / 0.23833726307817701
+
+######################################## Recoding Statement for td_final_score ########################################
+
+df['td_final_score_log'] = df['td_final_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['td_final_score_log'] > 4.369450, 'td_final_score_log'] = 4.369450
+df.loc[df['td_final_score_log'] < -11.512930, 'td_final_score_log'] = -11.512930
+df['td_final_score_log'] = df['td_final_score_log'].fillna('<NA>*')
+df.loc[:, 'td_final_score_log_ce'] = 1
+df.loc[[x in [-11.512925464970229] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 499
+df.loc[[x in [1.791759469228055] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 577
+df.loc[[x in [2.0794415416798357] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 328
+df.loc[[x in [2.1972245773362196] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 115
+df.loc[[x in [2.302585092994046] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 263
+df.loc[[x in [2.3978952727983707] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 141
+df.loc[[x in [2.4849066497880004] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 147
+df.loc[[x in [2.5649493574615367] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 130
+df.loc[[x in [2.6390573296152584] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 129
+df.loc[[x in [2.70805020110221, 3.5553480614894135] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 102
+df.loc[[x in [2.772588722239781] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 254
+df.loc[[x in [2.833213344056216] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 85
+df.loc[[x in [2.8903717578961645, 2.995732273553991] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 176
+df.loc[[x in [3.091042453358316] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 170
+df.loc[[x in [3.1780538303479458, 3.258096538021482] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 134
+df.loc[[x in [3.2188758248682006] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 110
+df.loc[[x in [3.295836866004329, 3.58351893845611] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 97
+df.loc[[x in [3.332204510175204] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 114
+df.loc[[x in [3.367295829986474] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 91
+df.loc[[x in [3.4011973816621555] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 112
+df.loc[[x in [3.6109179126442243] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 89
+df.loc[[x in [3.6375861597263857, 3.713572066704308] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 83
+df.loc[[x in [3.6635616461296463] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 84
+df.loc[[x in [3.7612001156935624] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 71
+df.loc[[x in [3.828641396489095] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 62
+df.loc[[x in [3.8501476017100584] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 67
+df.loc[[x in [3.871201010907891, 3.8918202981106265] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 56
+df.loc[[x in [3.912023005428146] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 32
+df.loc[[x in [4.02535169073515, 4.110873864173311, 3.9512437185814275] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 23
+df.loc[[x in [4.127134385045092, 4.04305126783455, 4.07753744390572, 4.219507705176107] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 16
+df.loc[[x in [4.143134726391533, 4.23410650459726] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 17
+df.loc[[x in [4.174387269895637] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 20
+df.loc[[x in [4.276666119016055, 3.9318256327243257, 4.007333185232471] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 18
+df.loc[[x in [0.6931471805599453] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 90
+df.loc[[x in [1.0986122886681098, 4.189654742026425, 4.204692619390966, 4.30406509320417, 4.31748811353631] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 14
+df.loc[[x in [1.3862943611198906, 4.290459441148391] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 13
+df.loc[[x in [1.6094379124341003] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 30
+df.loc[[x in [1.9459101490553132] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 5
+df.loc[[x in [2.9444389791664403] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 108
+df.loc[[x in [3.044522437723423] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 99
+df.loc[[x in [3.1354942159291497] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 123
+df.loc[[x in [3.4339872044851463] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 88
+df.loc[[x in [3.4657359027997265, 3.5263605246161616] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 104
+df.loc[[x in [3.4965075614664802] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 94
+df.loc[[x in [3.6888794541139363] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 79
+df.loc[[x in [3.7376696182833684] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 75
+df.loc[[x in [3.784189633918261] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 63
+df.loc[[x in [3.8066624897703196] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 65
+df.loc[[x in [3.970291913552122] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 31
+df.loc[[x in [3.9889840465642745] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 26
+df.loc[[x in [4.060443010546419] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 21
+df.loc[[x in [4.0943445622221] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 25
+df.loc[[x in [4.1588830833596715] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 22
+df.loc[[x in [4.248495242049359] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 12
+df.loc[[x in [4.2626798770413155, 4.3694478524670215] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 9
+df.loc[[x in [4.330733340286331] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 15
+df.loc[[x in [4.343805421853684, 4.356708826689592] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 7
+df.loc[[x in ['<NA>*'] for x in df['td_final_score_log']],'td_final_score_log_ce'] = 1
+df['td_final_score_log_ce'] = (df['td_final_score_log_ce'] - 196.64590263078318) / 169.05458253300893
+
+######################################## Recoding Statement for yys_specialCate5CallNum ########################################
+
+df['yys_specialCate5CallNum_square'] = df['yys_specialCate5CallNum'].apply(np.square)
+df.loc[df['yys_specialCate5CallNum_square'] > 793.500000, 'yys_specialCate5CallNum_square'] = 793.500000
+df.loc[df['yys_specialCate5CallNum_square'] < 0.000000, 'yys_specialCate5CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate5CallNum_square_we'] = 0
+df.loc[df['yys_specialCate5CallNum_square'].isnull(), 'yys_specialCate5CallNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate5CallNum_square']) & (df['yys_specialCate5CallNum_square'] < 4.0), 'yys_specialCate5CallNum_square_we'] = -0.18059232012508808
+df.loc[(4.0 <= df['yys_specialCate5CallNum_square']) & (df['yys_specialCate5CallNum_square'] < np.inf), 'yys_specialCate5CallNum_square_we'] = 0.19005721613991217
+df['yys_specialCate5CallNum_square_we'] = (df['yys_specialCate5CallNum_square_we'] - -0.013122826349734279) / 0.2189645622405505
+
+######################################## Recoding Statement for yys_specialCate2CalledSeconds ########################################
+
+df['yys_specialCate2CalledSeconds_square'] = df['yys_specialCate2CalledSeconds'].apply(np.square)
+df.loc[df['yys_specialCate2CalledSeconds_square'] > 6089979.345000, 'yys_specialCate2CalledSeconds_square'] = 6089979.345000
+df.loc[df['yys_specialCate2CalledSeconds_square'] < 0.000000, 'yys_specialCate2CalledSeconds_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CalledSeconds_square_we'] = 0
+df.loc[df['yys_specialCate2CalledSeconds_square'].isnull(), 'yys_specialCate2CalledSeconds_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate2CalledSeconds_square']) & (df['yys_specialCate2CalledSeconds_square'] < 10816.0), 'yys_specialCate2CalledSeconds_square_we'] = -0.18479231075471675
+df.loc[(10816.0 <= df['yys_specialCate2CalledSeconds_square']) & (df['yys_specialCate2CalledSeconds_square'] < np.inf), 'yys_specialCate2CalledSeconds_square_we'] = 0.14630243007173618
+df['yys_specialCate2CalledSeconds_square_we'] = (df['yys_specialCate2CalledSeconds_square_we'] - -0.013123999134932042) / 0.21895457604101604
+
+######################################## Recoding Statement for yys_specialCate2CalledNum ########################################
+
+df['yys_specialCate2CalledNum_square'] = df['yys_specialCate2CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate2CalledNum_square'] > 121.500000, 'yys_specialCate2CalledNum_square'] = 121.500000
+df.loc[df['yys_specialCate2CalledNum_square'] < 0.000000, 'yys_specialCate2CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate2CalledNum_square'].isnull(), 'yys_specialCate2CalledNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate2CalledNum_square']) & (df['yys_specialCate2CalledNum_square'] < 1.0), 'yys_specialCate2CalledNum_square_we'] = -0.17581236975422546
+df.loc[(1.0 <= df['yys_specialCate2CalledNum_square']) & (df['yys_specialCate2CalledNum_square'] < np.inf), 'yys_specialCate2CalledNum_square_we'] = 0.09540407457694722
+df['yys_specialCate2CalledNum_square_we'] = (df['yys_specialCate2CalledNum_square_we'] - -0.012377816406290166) / 0.21270217838166658
+
+######################################## Recoding Statement for yys_specialCate7TalkNum ########################################
+
+df['yys_specialCate7TalkNum_square'] = df['yys_specialCate7TalkNum'].apply(np.square)
+df.loc[df['yys_specialCate7TalkNum_square'] > 19661.065000, 'yys_specialCate7TalkNum_square'] = 19661.065000
+df.loc[df['yys_specialCate7TalkNum_square'] < 0.000000, 'yys_specialCate7TalkNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate7TalkNum_square_we'] = 0
+df.loc[df['yys_specialCate7TalkNum_square'].isnull(), 'yys_specialCate7TalkNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 1.0), 'yys_specialCate7TalkNum_square_we'] = -0.3941630852165394
+df.loc[(1.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 4.0), 'yys_specialCate7TalkNum_square_we'] = -0.2864007641218707
+df.loc[(4.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 9.0), 'yys_specialCate7TalkNum_square_we'] = -0.5653031489216057
+df.loc[(9.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 16.0), 'yys_specialCate7TalkNum_square_we'] = -0.2621865060012761
+df.loc[(16.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 36.0), 'yys_specialCate7TalkNum_square_we'] = -0.09395015920706705
+df.loc[(36.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 64.0), 'yys_specialCate7TalkNum_square_we'] = -0.2540653834789343
+df.loc[(64.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 121.0), 'yys_specialCate7TalkNum_square_we'] = 0.05318374862673712
+df.loc[(121.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 225.0), 'yys_specialCate7TalkNum_square_we'] = -0.06118895974360193
+df.loc[(225.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < 625.0), 'yys_specialCate7TalkNum_square_we'] = 0.12502942345476864
+df.loc[(625.0 <= df['yys_specialCate7TalkNum_square']) & (df['yys_specialCate7TalkNum_square'] < np.inf), 'yys_specialCate7TalkNum_square_we'] = 0.1624147848599075
+df['yys_specialCate7TalkNum_square_we'] = (df['yys_specialCate7TalkNum_square_we'] - -0.02113433520251671) / 0.27757758915980074
+
+######################################## Recoding Statement for umeng_device_price ########################################
+
+df['umeng_device_price_log'] = df['umeng_device_price'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_device_price_log'] > 1.609440, 'umeng_device_price_log'] = 1.609440
+df.loc[df['umeng_device_price_log'] < 0.000000, 'umeng_device_price_log'] = 0.000000
+df.loc[:, 'umeng_device_price_log_be'] = np.nan
+df.loc[df['umeng_device_price_log'].isnull(), 'umeng_device_price_log_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_device_price_log']) & (df['umeng_device_price_log'] < 0.693), 'umeng_device_price_log_be'] = 0
+df.loc[(0.693 <= df['umeng_device_price_log']) & (df['umeng_device_price_log'] < 1.099), 'umeng_device_price_log_be'] = 1
+df.loc[(1.099 <= df['umeng_device_price_log']) & (df['umeng_device_price_log'] < 1.386), 'umeng_device_price_log_be'] = 2
+df.loc[(1.386 <= df['umeng_device_price_log']) & (df['umeng_device_price_log'] < np.inf), 'umeng_device_price_log_be'] = 3
+df.loc[:,'umeng_device_price_log_be'] = df['umeng_device_price_log_be'].fillna(1.3239815526518064)
+df['umeng_device_price_log_be'] = (df['umeng_device_price_log_be'] - 1.3239815526518062) / 0.9451039706324748
+
+######################################## Recoding Statement for baidu_risk_blacklevel ########################################
+
+df['baidu_risk_blacklevel'] = df['baidu_risk_blacklevel'].fillna('<NA>*')
+df.loc[:, 'baidu_risk_blacklevel_we'] = 0
+df.loc[[x in ['<NA>*', 'A', 'B'] for x in df['baidu_risk_blacklevel']],'baidu_risk_blacklevel_we'] = -0.0444137587561908
+df.loc[[x in ['C', 'D'] for x in df['baidu_risk_blacklevel']],'baidu_risk_blacklevel_we'] = 0.5755493730522034
+df['baidu_risk_blacklevel_we'] = (df['baidu_risk_blacklevel_we'] - -0.005888683586361647) / 0.14966611118954118
+
+######################################## Recoding Statement for yys_specialCate3CalledNum ########################################
+
+df['yys_specialCate3CalledNum_square'] = df['yys_specialCate3CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate3CalledNum_square'] > 150.000000, 'yys_specialCate3CalledNum_square'] = 150.000000
+df.loc[df['yys_specialCate3CalledNum_square'] < 0.000000, 'yys_specialCate3CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate3CalledNum_square'].isnull(), 'yys_specialCate3CalledNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate3CalledNum_square']) & (df['yys_specialCate3CalledNum_square'] < 4.0), 'yys_specialCate3CalledNum_square_we'] = -0.17395430207455864
+df.loc[(4.0 <= df['yys_specialCate3CalledNum_square']) & (df['yys_specialCate3CalledNum_square'] < np.inf), 'yys_specialCate3CalledNum_square_we'] = 0.15873625212331144
+df['yys_specialCate3CalledNum_square_we'] = (df['yys_specialCate3CalledNum_square_we'] - -0.01256690163387772) / 0.21431574640700432
+
+######################################## Recoding Statement for yys_specialCate5CalledNum ########################################
+
+df['yys_specialCate5CalledNum_square'] = df['yys_specialCate5CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate5CalledNum_square'] > 726.000000, 'yys_specialCate5CalledNum_square'] = 726.000000
+df.loc[df['yys_specialCate5CalledNum_square'] < 0.000000, 'yys_specialCate5CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate5CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate5CalledNum_square'].isnull(), 'yys_specialCate5CalledNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < 1.0), 'yys_specialCate5CalledNum_square_we'] = -0.1589481235170134
+df.loc[(1.0 <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < 4.0), 'yys_specialCate5CalledNum_square_we'] = -0.2232937248121806
+df.loc[(4.0 <= df['yys_specialCate5CalledNum_square']) & (df['yys_specialCate5CalledNum_square'] < np.inf), 'yys_specialCate5CalledNum_square_we'] = 0.02461798850914585
+df['yys_specialCate5CalledNum_square_we'] = (df['yys_specialCate5CalledNum_square_we'] - -0.011576286662003556) / 0.20578854562541482
+
+######################################## Recoding Statement for riskScore ########################################
+
+df['riskScore_square'] = df['riskScore'].apply(np.square)
+df.loc[df['riskScore_square'] > 32.073750, 'riskScore_square'] = 32.073750
+df.loc[df['riskScore_square'] < 0.000000, 'riskScore_square'] = 0.000000
+df.loc[:, 'riskScore_square_we'] = 0
+df.loc[df['riskScore_square'].isnull(), 'riskScore_square_we'] = 0
+df.loc[(-np.inf <= df['riskScore_square']) & (df['riskScore_square'] < 1.0), 'riskScore_square_we'] = -0.01794711867548123
+df.loc[(1.0 <= df['riskScore_square']) & (df['riskScore_square'] < 4.0), 'riskScore_square_we'] = 0.13470271927050248
+df.loc[(4.0 <= df['riskScore_square']) & (df['riskScore_square'] < 6.25), 'riskScore_square_we'] = -0.044908074139464446
+df.loc[(6.25 <= df['riskScore_square']) & (df['riskScore_square'] < 9.0), 'riskScore_square_we'] = -0.22817225922207776
+df.loc[(9.0 <= df['riskScore_square']) & (df['riskScore_square'] < np.inf), 'riskScore_square_we'] = 0.26501013975919824
+df['riskScore_square_we'] = (df['riskScore_square_we'] - -0.006289782868034546) / 0.15129134411178982
+
+######################################## Recoding Statement for geo_B7_RSL ########################################
+
+df['geo_B7_RSL_ne'] = df['geo_B7_RSL'].isnull().astype(int)
+df['geo_B7_RSL_ne'] = (df['geo_B7_RSL_ne'] - 0.003628666465074085) / 0.06012902165143993
+
+######################################## Recoding Statement for yys_specialCate4CalledNum ########################################
+
+df['yys_specialCate4CalledNum_square'] = df['yys_specialCate4CalledNum'].apply(np.square)
+df.loc[df['yys_specialCate4CalledNum_square'] > 218362.020000, 'yys_specialCate4CalledNum_square'] = 218362.020000
+df.loc[df['yys_specialCate4CalledNum_square'] < 0.000000, 'yys_specialCate4CalledNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate4CalledNum_square_we'] = 0
+df.loc[df['yys_specialCate4CalledNum_square'].isnull(), 'yys_specialCate4CalledNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 1.0), 'yys_specialCate4CalledNum_square_we'] = -0.2122292171564677
+df.loc[(1.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 9.0), 'yys_specialCate4CalledNum_square_we'] = -0.1546449643970895
+df.loc[(9.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 25.0), 'yys_specialCate4CalledNum_square_we'] = -0.27753036940821785
+df.loc[(25.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 64.0), 'yys_specialCate4CalledNum_square_we'] = -0.0713956097106321
+df.loc[(64.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 169.0), 'yys_specialCate4CalledNum_square_we'] = 0.1976726741726871
+df.loc[(169.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 529.0), 'yys_specialCate4CalledNum_square_we'] = -0.07491915255550398
+df.loc[(529.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 1781.0), 'yys_specialCate4CalledNum_square_we'] = -0.30535867786648485
+df.loc[(1781.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < 8464.0), 'yys_specialCate4CalledNum_square_we'] = -0.2088627540633434
+df.loc[(8464.0 <= df['yys_specialCate4CalledNum_square']) & (df['yys_specialCate4CalledNum_square'] < np.inf), 'yys_specialCate4CalledNum_square_we'] = -0.22480164165985728
+df['yys_specialCate4CalledNum_square_we'] = (df['yys_specialCate4CalledNum_square_we'] - -0.014830100116979288) / 0.23263821151169145
+
+######################################## Recoding Statement for yys_specialCate4CallNum ########################################
+
+df.loc[df['yys_specialCate4CallNum'] > 562.220000, 'yys_specialCate4CallNum'] = 562.220000
+df.loc[df['yys_specialCate4CallNum'] < 0.000000, 'yys_specialCate4CallNum'] = 0.000000
+df.loc[:, 'yys_specialCate4CallNum_we'] = 0
+df.loc[df['yys_specialCate4CallNum'].isnull(), 'yys_specialCate4CallNum_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 2.0), 'yys_specialCate4CallNum_we'] = -0.29089111742349694
+df.loc[(2.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 4.0), 'yys_specialCate4CallNum_we'] = -0.10345817195330016
+df.loc[(4.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 6.0), 'yys_specialCate4CallNum_we'] = -0.05789526966627555
+df.loc[(6.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 10.0), 'yys_specialCate4CallNum_we'] = -0.16453416695611317
+df.loc[(10.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 17.0), 'yys_specialCate4CallNum_we'] = 0.005062031169816231
+df.loc[(17.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 28.0), 'yys_specialCate4CallNum_we'] = 0.014034461493985776
+df.loc[(28.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 48.0), 'yys_specialCate4CallNum_we'] = -0.292286596299132
+df.loc[(48.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < 102.0), 'yys_specialCate4CallNum_we'] = -0.1446347720790347
+df.loc[(102.0 <= df['yys_specialCate4CallNum']) & (df['yys_specialCate4CallNum'] < np.inf), 'yys_specialCate4CallNum_we'] = -0.10349252499955995
+df['yys_specialCate4CallNum_we'] = (df['yys_specialCate4CallNum_we'] - -0.013777077470432865) / 0.22429383876646852
+
+######################################## Recoding Statement for yys_specialCate2CallNum ########################################
+
+df['yys_specialCate2CallNum_square'] = df['yys_specialCate2CallNum'].apply(np.square)
+df.loc[df['yys_specialCate2CallNum_square'] > 54.000000, 'yys_specialCate2CallNum_square'] = 54.000000
+df.loc[df['yys_specialCate2CallNum_square'] < 0.000000, 'yys_specialCate2CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate2CallNum_square_we'] = 0
+df.loc[df['yys_specialCate2CallNum_square'].isnull(), 'yys_specialCate2CallNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate2CallNum_square']) & (df['yys_specialCate2CallNum_square'] < np.inf), 'yys_specialCate2CallNum_square_we'] = -0.14888335616395346
+df['yys_specialCate2CallNum_square_we'] = (df['yys_specialCate2CallNum_square_we'] - -0.011114950666038017) / 0.2017042435497386
+
+######################################## Recoding Statement for yys_specialCate6TalkNum ########################################
+
+df.loc[df['yys_specialCate6TalkNum'] > 310.285000, 'yys_specialCate6TalkNum'] = 310.285000
+df.loc[df['yys_specialCate6TalkNum'] < 0.000000, 'yys_specialCate6TalkNum'] = 0.000000
+df.loc[:, 'yys_specialCate6TalkNum_we'] = 0
+df.loc[df['yys_specialCate6TalkNum'].isnull(), 'yys_specialCate6TalkNum_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 1.0), 'yys_specialCate6TalkNum_we'] = -0.05097036881501013
+df.loc[(1.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 3.0), 'yys_specialCate6TalkNum_we'] = -0.10264054080803613
+df.loc[(3.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 5.0), 'yys_specialCate6TalkNum_we'] = -0.044335172376444375
+df.loc[(5.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 7.0), 'yys_specialCate6TalkNum_we'] = -0.15026858979729055
+df.loc[(7.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 10.0), 'yys_specialCate6TalkNum_we'] = -0.3214524021807894
+df.loc[(10.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 14.0), 'yys_specialCate6TalkNum_we'] = -0.3337468847190691
+df.loc[(14.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 20.0), 'yys_specialCate6TalkNum_we'] = -0.26504410438971887
+df.loc[(20.0 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < 34.1), 'yys_specialCate6TalkNum_we'] = -0.11968516642521038
+df.loc[(34.1 <= df['yys_specialCate6TalkNum']) & (df['yys_specialCate6TalkNum'] < np.inf), 'yys_specialCate6TalkNum_we'] = -0.1255080401166387
+df['yys_specialCate6TalkNum_we'] = (df['yys_specialCate6TalkNum_we'] - -0.013327375288665594) / 0.22067072142591465
+
+######################################## Recoding Statement for yys_specialCate3CallNum ########################################
+
+df['yys_specialCate3CallNum_square'] = df['yys_specialCate3CallNum'].apply(np.square)
+df.loc[df['yys_specialCate3CallNum_square'] > 216.000000, 'yys_specialCate3CallNum_square'] = 216.000000
+df.loc[df['yys_specialCate3CallNum_square'] < 0.000000, 'yys_specialCate3CallNum_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CallNum_square_we'] = 0
+df.loc[df['yys_specialCate3CallNum_square'].isnull(), 'yys_specialCate3CallNum_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate3CallNum_square']) & (df['yys_specialCate3CallNum_square'] < 4.0), 'yys_specialCate3CallNum_square_we'] = -0.21871555243745985
+df.loc[(4.0 <= df['yys_specialCate3CallNum_square']) & (df['yys_specialCate3CallNum_square'] < np.inf), 'yys_specialCate3CallNum_square_we'] = 0.5994974847621627
+df['yys_specialCate3CallNum_square_we'] = (df['yys_specialCate3CallNum_square_we'] - -0.019764194463381946) / 0.26974096741127446
+
+######################################## Recoding Statement for umeng_device_score ########################################
+
+df['umeng_device_score_square'] = df['umeng_device_score'].apply(np.square)
+df.loc[df['umeng_device_score_square'] > 611524.000000, 'umeng_device_score_square'] = 611524.000000
+df.loc[df['umeng_device_score_square'] < 147456.000000, 'umeng_device_score_square'] = 147456.000000
+df.loc[:, 'umeng_device_score_square_be'] = np.nan
+df.loc[df['umeng_device_score_square'].isnull(), 'umeng_device_score_square_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 276676.0), 'umeng_device_score_square_be'] = 0
+df.loc[(276676.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 331315.6), 'umeng_device_score_square_be'] = 1
+df.loc[(331315.6 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 348100.0), 'umeng_device_score_square_be'] = 2
+df.loc[(348100.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 362404.0), 'umeng_device_score_square_be'] = 3
+df.loc[(362404.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 403225.0), 'umeng_device_score_square_be'] = 4
+df.loc[(403225.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 430336.0), 'umeng_device_score_square_be'] = 5
+df.loc[(430336.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 455625.0), 'umeng_device_score_square_be'] = 6
+df.loc[(455625.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 463761.0), 'umeng_device_score_square_be'] = 7
+df.loc[(463761.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < 495616.0), 'umeng_device_score_square_be'] = 8
+df.loc[(495616.0 <= df['umeng_device_score_square']) & (df['umeng_device_score_square'] < np.inf), 'umeng_device_score_square_be'] = 9
+df.loc[:,'umeng_device_score_square_be'] = df['umeng_device_score_square_be'].fillna(4.299877600979192)
+df['umeng_device_score_square_be'] = (df['umeng_device_score_square_be'] - 4.299877600979193) / 2.5569033516483373
+
+######################################## Recoding Statement for yys_specialCate5CalledSeconds ########################################
+
+df['yys_specialCate5CalledSeconds_log'] = df['yys_specialCate5CalledSeconds'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_specialCate5CalledSeconds_log'] > 10.051390, 'yys_specialCate5CalledSeconds_log'] = 10.051390
+df.loc[df['yys_specialCate5CalledSeconds_log'] < -11.512930, 'yys_specialCate5CalledSeconds_log'] = -11.512930
+df.loc[:, 'yys_specialCate5CalledSeconds_log_we'] = 0
+df.loc[df['yys_specialCate5CalledSeconds_log'].isnull(), 'yys_specialCate5CalledSeconds_log_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < 2.89), 'yys_specialCate5CalledSeconds_log_we'] = -0.16870710138682818
+df.loc[(2.89 <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < 4.956), 'yys_specialCate5CalledSeconds_log_we'] = -0.05004947363988301
+df.loc[(4.956 <= df['yys_specialCate5CalledSeconds_log']) & (df['yys_specialCate5CalledSeconds_log'] < np.inf), 'yys_specialCate5CalledSeconds_log_we'] = -0.09279723588281208
+df['yys_specialCate5CalledSeconds_log_we'] = (df['yys_specialCate5CalledSeconds_log_we'] - -0.011441975781434204) / 0.20460808091431237
+
+######################################## Recoding Statement for umeng_id_score ########################################
+
+df['umeng_id_score_square'] = df['umeng_id_score'].apply(np.square)
+df.loc[df['umeng_id_score_square'] > 722500.000000, 'umeng_id_score_square'] = 722500.000000
+df.loc[df['umeng_id_score_square'] < 106276.000000, 'umeng_id_score_square'] = 106276.000000
+df.loc[:, 'umeng_id_score_square_be'] = np.nan
+df.loc[df['umeng_id_score_square'].isnull(), 'umeng_id_score_square_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 260100.0), 'umeng_id_score_square_be'] = 0
+df.loc[(260100.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 283024.0), 'umeng_id_score_square_be'] = 1
+df.loc[(283024.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < 605284.0), 'umeng_id_score_square_be'] = 2
+df.loc[(605284.0 <= df['umeng_id_score_square']) & (df['umeng_id_score_square'] < np.inf), 'umeng_id_score_square_be'] = 3
+df.loc[:,'umeng_id_score_square_be'] = df['umeng_id_score_square_be'].fillna(0.9719626168224299)
+df['umeng_id_score_square_be'] = (df['umeng_id_score_square_be'] - 0.9719626168224299) / 0.9424291159611874
+
+######################################## Recoding Statement for yys_fakeCallNum ########################################
+
+df['yys_fakeCallNum_log'] = df['yys_fakeCallNum'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['yys_fakeCallNum_log'] > 5.981410, 'yys_fakeCallNum_log'] = 5.981410
+df.loc[df['yys_fakeCallNum_log'] < -11.512930, 'yys_fakeCallNum_log'] = -11.512930
+df.loc[:, 'yys_fakeCallNum_log_we'] = 0
+df.loc[df['yys_fakeCallNum_log'].isnull(), 'yys_fakeCallNum_log_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < 0.0), 'yys_fakeCallNum_log_we'] = -0.2475747782483305
+df.loc[(0.0 <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < 0.693), 'yys_fakeCallNum_log_we'] = -0.3228395674758682
+df.loc[(0.693 <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < 1.386), 'yys_fakeCallNum_log_we'] = -0.06240723400595643
+df.loc[(1.386 <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < 1.792), 'yys_fakeCallNum_log_we'] = -0.10563643577652237
+df.loc[(1.792 <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < 2.565), 'yys_fakeCallNum_log_we'] = 0.07083899203182038
+df.loc[(2.565 <= df['yys_fakeCallNum_log']) & (df['yys_fakeCallNum_log'] < np.inf), 'yys_fakeCallNum_log_we'] = 0.17651620866823273
+df['yys_fakeCallNum_log_we'] = (df['yys_fakeCallNum_log_we'] - -0.015916824272470178) / 0.24090131777634335
+
+######################################## Recoding Statement for yys_friendMap ########################################
+
+df['yys_friendMap'] = df['yys_friendMap'].fillna('<NA>*')
+df.loc[:, 'yys_friendMap_te'] = 0.22512851527063804
+df.loc[[x in ['<NA>*'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.2846464428363566
+df.loc[[x in ['上海'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.04705951548523267
+df.loc[[x in ['云南'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.31036180057972274
+df.loc[[x in ['全国'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.15054067352579797
+df.loc[[x in ['内蒙古'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.29818186109720524
+df.loc[[x in ['北京'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.18198023589728826
+df.loc[[x in ['吉林'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.27481655584176
+df.loc[[x in ['四川'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.15243786723291228
+df.loc[[x in ['天津'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.21069234917663063
+df.loc[[x in ['宁夏'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.3417025288012
+df.loc[[x in ['安徽'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.22116136500453032
+df.loc[[x in ['山东'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.23672856896998892
+df.loc[[x in ['山西'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.14266915864826085
+df.loc[[x in ['广东'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.2093733245071942
+df.loc[[x in ['广西'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.2470888252115664
+df.loc[[x in ['新疆'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.15446968476500117
+df.loc[[x in ['江苏'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.22503037104177265
+df.loc[[x in ['江西'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.19376713933289244
+df.loc[[x in ['河北'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.16281616792937248
+df.loc[[x in ['河南'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.1719278664134272
+df.loc[[x in ['浙江'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.21049776275864496
+df.loc[[x in ['海南'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.7855913416419968
+df.loc[[x in ['湖北'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.19592143937289452
+df.loc[[x in ['湖南'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.16589314371647557
+df.loc[[x in ['甘肃'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.33493373152432354
+df.loc[[x in ['福建'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.22674048166815894
+df.loc[[x in ['西藏'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.0027247412798756046
+df.loc[[x in ['贵州'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.17423547873633227
+df.loc[[x in ['辽宁'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.17559610994928052
+df.loc[[x in ['重庆'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.22806729335272036
+df.loc[[x in ['陕西'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.14593876102626643
+df.loc[[x in ['青海'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.15732432127380808
+df.loc[[x in ['黑龙江'] for x in df['yys_friendMap']],'yys_friendMap_te'] = 0.1616106985720243
+df['yys_friendMap_te'] = (df['yys_friendMap_te'] - 0.22812400622784015) / 0.060307956085545365
+
+######################################## Recoding Statement for yys_specialCate3CalledSeconds ########################################
+
+df['yys_specialCate3CalledSeconds_square'] = df['yys_specialCate3CalledSeconds'].apply(np.square)
+df.loc[df['yys_specialCate3CalledSeconds_square'] > 6789920.715000, 'yys_specialCate3CalledSeconds_square'] = 6789920.715000
+df.loc[df['yys_specialCate3CalledSeconds_square'] < 0.000000, 'yys_specialCate3CalledSeconds_square'] = 0.000000
+df.loc[:, 'yys_specialCate3CalledSeconds_square_we'] = 0
+df.loc[df['yys_specialCate3CalledSeconds_square'].isnull(), 'yys_specialCate3CalledSeconds_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate3CalledSeconds_square']) & (df['yys_specialCate3CalledSeconds_square'] < 16129.0), 'yys_specialCate3CalledSeconds_square_we'] = -0.18448654710763188
+df.loc[(16129.0 <= df['yys_specialCate3CalledSeconds_square']) & (df['yys_specialCate3CalledSeconds_square'] < np.inf), 'yys_specialCate3CalledSeconds_square_we'] = 0.1433306596825787
+df['yys_specialCate3CalledSeconds_square_we'] = (df['yys_specialCate3CalledSeconds_square_we'] - -0.013088438434467855) / 0.21866009986876786
+
+######################################## Recoding Statement for umeng_device_rank ########################################
+
+df['umeng_device_rank_square'] = df['umeng_device_rank'].apply(np.square)
+df.loc[df['umeng_device_rank_square'] > 9.000000, 'umeng_device_rank_square'] = 9.000000
+df.loc[df['umeng_device_rank_square'] < 0.000000, 'umeng_device_rank_square'] = 0.000000
+df.loc[:, 'umeng_device_rank_square_we'] = 0
+df.loc[df['umeng_device_rank_square'].isnull(), 'umeng_device_rank_square_we'] = 0.044926169932870005
+df.loc[(-np.inf <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < 1.0), 'umeng_device_rank_square_we'] = -0.011537469078197773
+df.loc[(1.0 <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < 4.0), 'umeng_device_rank_square_we'] = -0.03545732453006481
+df.loc[(4.0 <= df['umeng_device_rank_square']) & (df['umeng_device_rank_square'] < np.inf), 'umeng_device_rank_square_we'] = 0.049220770619029276
+df['umeng_device_rank_square_we'] = (df['umeng_device_rank_square_we'] - -0.00021150867533756428) / 0.02774960866827991
+
+######################################## Recoding Statement for umeng_location_score ########################################
+
+df['umeng_location_score_log'] = df['umeng_location_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_location_score_log'] > 6.680850, 'umeng_location_score_log'] = 6.680850
+df.loc[df['umeng_location_score_log'] < 6.127070, 'umeng_location_score_log'] = 6.127070
+df.loc[:, 'umeng_location_score_log_be'] = np.nan
+df.loc[df['umeng_location_score_log'].isnull(), 'umeng_location_score_log_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.295), 'umeng_location_score_log_be'] = 0
+df.loc[(6.295 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.34), 'umeng_location_score_log_be'] = 1
+df.loc[(6.34 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.361), 'umeng_location_score_log_be'] = 2
+df.loc[(6.361 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.378), 'umeng_location_score_log_be'] = 3
+df.loc[(6.378 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.404), 'umeng_location_score_log_be'] = 4
+df.loc[(6.404 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.436), 'umeng_location_score_log_be'] = 5
+df.loc[(6.436 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.463), 'umeng_location_score_log_be'] = 6
+df.loc[(6.463 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.48), 'umeng_location_score_log_be'] = 7
+df.loc[(6.48 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < 6.515), 'umeng_location_score_log_be'] = 8
+df.loc[(6.515 <= df['umeng_location_score_log']) & (df['umeng_location_score_log'] < np.inf), 'umeng_location_score_log_be'] = 9
+df.loc[:,'umeng_location_score_log_be'] = df['umeng_location_score_log_be'].fillna(4.422721728524133)
+df['umeng_location_score_log_be'] = (df['umeng_location_score_log_be'] - 4.422721728524133) / 2.695303766909737
+
+######################################## Recoding Statement for geo_A3_RSL ########################################
+
+df['geo_A3_RSL'] = df['geo_A3_RSL'].fillna('<NA>*')
+df.loc[:, 'geo_A3_RSL_we'] = 0
+df.loc[[x in ['<NA>*', '\\03\\""', '\\04\\""', '\\2\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = 0.336386673040887
+df.loc[[x in ['\\1\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = 0.12882973896309868
+df.loc[[x in ['\\3\\""'] for x in df['geo_A3_RSL']],'geo_A3_RSL_we'] = -0.09776695773376794
+df['geo_A3_RSL_we'] = (df['geo_A3_RSL_we'] - -0.00752679841057903) / 0.16647522460987746
+
+######################################## Recoding Statement for yys_specialCate4CalledSeconds ########################################
+
+df['yys_specialCate4CalledSeconds_square'] = df['yys_specialCate4CalledSeconds'].apply(np.square)
+df.loc[df['yys_specialCate4CalledSeconds_square'] > 1800836321.260000, 'yys_specialCate4CalledSeconds_square'] = 1800836321.260000
+df.loc[df['yys_specialCate4CalledSeconds_square'] < 0.000000, 'yys_specialCate4CalledSeconds_square'] = 0.000000
+df.loc[:, 'yys_specialCate4CalledSeconds_square_we'] = 0
+df.loc[df['yys_specialCate4CalledSeconds_square'].isnull(), 'yys_specialCate4CalledSeconds_square_we'] = 0.28419660294403737
+df.loc[(-np.inf <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 4761.0), 'yys_specialCate4CalledSeconds_square_we'] = -0.3013088472101564
+df.loc[(4761.0 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 34596.0), 'yys_specialCate4CalledSeconds_square_we'] = -0.11958277909384689
+df.loc[(34596.0 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 138384.0), 'yys_specialCate4CalledSeconds_square_we'] = -0.22395630558844976
+df.loc[(138384.0 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 449570.5), 'yys_specialCate4CalledSeconds_square_we'] = 0.1433306596825787
+df.loc[(449570.5 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 1382976.0), 'yys_specialCate4CalledSeconds_square_we'] = -0.035322435476106855
+df.loc[(1382976.0 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 4170584.2), 'yys_specialCate4CalledSeconds_square_we'] = -0.016737197172768142
+df.loc[(4170584.2 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 15369536.8), 'yys_specialCate4CalledSeconds_square_we'] = -0.16698207077103114
+df.loc[(15369536.8 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < 68135171.2), 'yys_specialCate4CalledSeconds_square_we'] = -0.26805162545367406
+df.loc[(68135171.2 <= df['yys_specialCate4CalledSeconds_square']) & (df['yys_specialCate4CalledSeconds_square'] < np.inf), 'yys_specialCate4CalledSeconds_square_we'] = -0.25321655904973295
+df['yys_specialCate4CalledSeconds_square_we'] = (df['yys_specialCate4CalledSeconds_square_we'] - -0.015080132134805514) / 0.23454645564767113
+
+######################################## Recoding Statement for umeng_interest_score ########################################
+
+df['umeng_interest_score_log'] = df['umeng_interest_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_interest_score_log'] > 6.635950, 'umeng_interest_score_log'] = 6.635950
+df.loc[df['umeng_interest_score_log'] < -11.512930, 'umeng_interest_score_log'] = -11.512930
+df.loc[:, 'umeng_interest_score_log_be'] = np.nan
+df.loc[df['umeng_interest_score_log'].isnull(), 'umeng_interest_score_log_be'] = np.nan
+df.loc[(-np.inf <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.188), 'umeng_interest_score_log_be'] = 0
+df.loc[(6.188 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.254), 'umeng_interest_score_log_be'] = 1
+df.loc[(6.254 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.304), 'umeng_interest_score_log_be'] = 2
+df.loc[(6.304 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.342), 'umeng_interest_score_log_be'] = 3
+df.loc[(6.342 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.372), 'umeng_interest_score_log_be'] = 4
+df.loc[(6.372 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.389), 'umeng_interest_score_log_be'] = 5
+df.loc[(6.389 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < 6.409), 'umeng_interest_score_log_be'] = 6
+df.loc[(6.409 <= df['umeng_interest_score_log']) & (df['umeng_interest_score_log'] < np.inf), 'umeng_interest_score_log_be'] = 7
+df.loc[:,'umeng_interest_score_log_be'] = df['umeng_interest_score_log_be'].fillna(3.359313077939234)
+df['umeng_interest_score_log_be'] = (df['umeng_interest_score_log_be'] - 3.3593130779392335) / 2.2012404033901753
+
+######################################## Recoding Statement for td_final_decision ########################################
+
+df['td_final_decision'] = df['td_final_decision'].astype(str)
+df.loc[:, 'td_final_decision_Accept'] = 0
+df.loc[df['td_final_decision'] == 'Accept', 'td_final_decision_Accept'] = 1
+df.loc[:, 'td_final_decision_Review'] = 0
+df.loc[df['td_final_decision'] == 'Review', 'td_final_decision_Review'] = 1
+
+######################################## Recoding Statement for umeng_app_score ########################################
+
+df['umeng_app_score_log'] = df['umeng_app_score'].apply(lambda x: np.log(max(x, 0.00001)))
+df.loc[df['umeng_app_score_log'] > 6.612040, 'umeng_app_score_log'] = 6.612040
+df.loc[df['umeng_app_score_log'] < -11.512930, 'umeng_app_score_log'] = -11.512930
+df.loc[:, 'umeng_app_score_log_we'] = 0
+df.loc[df['umeng_app_score_log'].isnull(), 'umeng_app_score_log_we'] = 0.03918493813393555
+df.loc[(-np.inf <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.269), 'umeng_app_score_log_we'] = -0.21815892534014206
+df.loc[(6.269 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.282), 'umeng_app_score_log_we'] = -0.2215724136543474
+df.loc[(6.282 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.292), 'umeng_app_score_log_we'] = -0.2779393464600816
+df.loc[(6.292 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.297), 'umeng_app_score_log_we'] = 0.40472825228183734
+df.loc[(6.297 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.319), 'umeng_app_score_log_we'] = -0.01779483873090348
+df.loc[(6.319 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.324), 'umeng_app_score_log_we'] = 0.35873719725171394
+df.loc[(6.324 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < 6.366), 'umeng_app_score_log_we'] = 0.16422474010514712
+df.loc[(6.366 <= df['umeng_app_score_log']) & (df['umeng_app_score_log'] < np.inf), 'umeng_app_score_log_we'] = 0.527047125545974
+df['umeng_app_score_log_we'] = (df['umeng_app_score_log_we'] - -0.018429186220851372) / 0.2608086317270133

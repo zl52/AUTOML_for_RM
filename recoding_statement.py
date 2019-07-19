@@ -1,23 +1,42 @@
 import numpy as np
 import pandas as pd
 
-from feature_encoding import UD_WoeEncoder
-from data_cleaning import desc_stat
 from tools import *
+from feature_encoding import WoeEncoder
+from data_cleaning import desc_stat
+from feature_transformation import FeatureTransformer
+from feature_trimming import FeatureTrimmer
+from feature_scaling import FeatureScaler
+from feature_encoding import FeatureEncoder
 
 
-class GENERATE_OUTPUT_FILES:
+class GenerateOutputFiles:
 
-    def __init__(self, df_ori, label, target=TARGET, exclude_list=[]):
+    def __init__(self,
+                 df_ori,
+                 label,
+                 target=TARGET,
+                 exclude_list=[]):
         """
-        : params df_ori: original dataframe
-        : params label: label will be used in the modeling process
-        : params target: list of default boolean targets
-        : params exclude_list: list of features excluded from being recoded
-        : params feats: features used to train the model
-        : params recoding_dict: dictionary recording recoding statements of features
-        : params feat_dict: dictionary recording changes of feature names
-        : params recoding_statement: recoding statement to output
+        Parameters
+        ----------
+        df_ori: pd.DataFrame
+                Original dataframe before feature engineering,
+                including transformation, scaling, encoding and imputation.
+        label: str
+                Label will be used in the modeling process
+        target: list
+                List of default boolean targets
+        exclude_list: list
+                List of features excluded from being recoded
+        feats: list
+                Features used to train the model
+        recoding_dict: dict
+                Dictionary recording recoding statements for each feature
+        feat_dict: dict
+                Dictionary recording changes of feature names
+        recoding_statement: str
+                Recoding statement to output
         """
         self.df_ori = df_ori
         self.label = label
@@ -28,75 +47,130 @@ class GENERATE_OUTPUT_FILES:
         self.feat_dict = dict(zip(self.feats, self.feats))
         self.recoding_statement = ''
 
-    def write_recoding_txt(self, file, encoding="utf-8"):
-        """
-        Output recoding statements
+    def generate_lr_recoding_dict(self, file_name, useTransformr=True, useTrimmr=True, 
+                                  useScalr=True, useWoeEncoder=True, useImputr=True,
+                                  cut_method='qcut', scaler_type='StandardScaler',
+                                  encoding="utf-8", silent=True):
+        df = self.df_ori.copy()
+        with HiddenPrints():
+            basic_transformr = FeatureTransformer(target=self.target, drop_features=True, silent=silent,
+                                                  recoding_dict=self.recoding_dict, feat_dict=self.feat_dict)
+            df = basic_transformr.fit_transform(df, label=self.label, fit_action=useTransformr,
+                                                transform_action=useTransformr,exclude_list=self.exclude_list)
 
-        : params file: output file's name
-        : params encoding: encoding standard
+            trimmr = FeatureTrimmer(target=self.target, silent=silent, recoding_dict=self.recoding_dict,
+                                    feat_dict=self.feat_dict)
+            df = trimmr.fit_transform(df, action=useTrimmr, exclude_list=self.exclude_list)
+
+            encodr = FeatureEncoder(target=self.target, use_woe_encoder=useWoeEncoder, drop_features=True,
+                                    we_cut_method=cut_method, be_cut_method=cut_method, recoding_dict=self.recoding_dict,
+                                    feat_dict=self.feat_dict)
+            df = encodr.fit_transform(df, self.label, exclude_list=self.exclude_list)
+
+            scalr = FeatureScaler(target=self.target, silent=silent, scaler_type=scaler_type,
+                                  recoding_dict=self.recoding_dict, feat_dict=self.feat_dict)
+            df = scalr.fit_transform(df, label=self.label, action=useScalr,
+                                     exclude_list=self.exclude_list+encodr.final_OneHotEncoder_new_feat)
+        self.write_recoding_txt(file_name, encoding=encoding)
+
+    def write_recoding_txt(self, file_name, encoding="utf-8"):
+        """
+        Write recoding statements.
+
+        Parameters
+        ----------
+        file_name: str
+                Output file's name
+        encoding: str
+                Encoding standard
         """
         for k, v in self.recoding_dict.items():
-            self.recoding_statement += '\n' + '#' * 40 + ' Recoding Statement for ' \
-                                    + str(k) + ' ' + '#' * 40 + '\n' + v + '\n'
+            self.recoding_statement += '\n%s Recoding Statement for %s %s\n%s\n' %('#'*40, k, '#'*40, v)
 
-        self.recoding_file = file
+        self.recoding_file = file_name
         fo = open(self.recoding_file, "w", encoding=encoding)
         fo.write(self.recoding_statement)
         fo.close()
+        self.final_feats = list(self.feat_dict.values())
+        self.recoding_dict = dict(zip(self.feats, [''] * len(self.feats)))
+        self.feat_dict = dict(zip(self.feats, self.feats))
 
-    def write_statistical_summary(self, file, encoding="utf-8"):
+    def write_statistical_summary(self, file_name, encoding="utf-8"):
         """
-        Output recoding statements
+        Write statistical summary.
 
-        : params file: output file's name
-        : params encoding: encoding standard
+        Parameters
+        ----------
+        file_name: str
+                Output file's name
+        encoding: str
+                Encoding standard
+
+        Returns
+        ----------
+        dcp_stat: pd.DataFrame
+                Descriptive stats
         """
-        self.dcp_stat = desc_stat(self.df_ori[list(self.feats)], target=self.target, ratio_pct=True,
+        self.dcp_stat = desc_stat(self.df_ori[list(self.feats)], target=self.target, is_ratio_pct=True,
                                   use_formater=True, silent=True)
-        woe_stat = self.woe_recoding_stat('', encoding=encoding, write=False)
+        woe_stat = self.woe_recoding_stat('', encoding=encoding, write_recoding_statement=False)
         iv_stat = woe_stat.groupby('feature').iv.max()
         self.dcp_stat = pd.concat([self.dcp_stat, iv_stat], axis=1)
-        self.dcp_stat.to_excel(file, encoding=encoding)
+        self.dcp_stat.to_excel(file_name, encoding=encoding)
 
         return self.dcp_stat
 
-    def exec_recoding(self, df, encoding="utf-8"):
+    def exec_recoding(self, df_e, encoding="utf-8"):
         """
-        Execute recoding statement to the input dataframe
+        Execute recoding statement to the input dataframe.
 
-        : params df: the input dataframe
-        : params encoding: encoding standard
+        Parameters
+        ----------
+        df: pd.DataFrame
+                The input dataframe
+        encoding: str
+                Encoding standard
 
-        : return df_copy: recoded dataframe
+        Returns
+        ----------
+        df_copy: pd.DataFrame
+                Recoded dataframe
         """
-        df_copy = df.copy()
+        df = df_e.copy()
         fo = open(self.recoding_file, 'r', encoding=encoding)
         recoding_text = fo.read()
         fo.close()
         exec(recoding_text)
+        return df
 
-        return df_copy
-
-    def woe_recoding_stat(self, file, encoding="utf-8", unseen='<UNSEEN>*', unknown='<NA>*', write=True):
+    def woe_recoding_stat(self, file_name, encoding="utf-8", unseen='<UNSEEN>*', unknown='<NA>*', 
+                          write_recoding_statement=True):
         """
-        Output recoding woe recoding statistics
+        Output recoding woe recoding statistics.
 
-        : params file: output file's name
-        : params encoding: encoding standard
-        : params unseen: string or value used to denote unknown case (no information)
-        : params unknown: string or value used to denote unseen case (case not yet seen)
+        Parameters
+        ----------
+        file_name: str
+                Output file's name
+        encoding: str
+                Encoding standard
+        unseen: str, int or float
+                String or value used to denote unknown case (no information)
+        unknown: str, int or float
+                String or value used to denote unseen case (case not yet seen)
+        write_recoding_statement: boolean
+                Write recoding statement
         """
         df_copy = self.df_ori.copy()
         cav_list = self.df_ori[list(self.feats)].select_dtypes(include=[object]).columns.tolist()
         cov_list = self.df_ori[list(self.feats)].select_dtypes(exclude=[object]).columns.tolist()
-
         col = ['feature', 'iv', 'woe', 'group','depvar_count', 'depvar_rate', 'count', 'count_proportion',
                'lift', 'max', 'min']
         cav_recoding_stat = pd.DataFrame(columns=col)
 
         for i in cav_list:
-            we_tmp = UD_WoeEncoder(x_dtypes='cav', cut_method='dt')
-            we_tmp.ud_fit(df_copy[i], df_copy[self.label], prefix=i)
+            we_tmp = WoeEncoder(x_dtypes='cav', cut_method='dt')
+            we_tmp.fit(df_copy[i], df_copy[self.label], prefix=i)
             df_map = pd.DataFrame([we_tmp.dmap], index=['value']).T.drop([unseen], axis=0)
             df_map = df_map.reset_index(drop=False).set_index('value')
             df_copy[i].fillna(unknown, inplace=True)
@@ -132,8 +206,8 @@ class GENERATE_OUTPUT_FILES:
         cov_recoding_stat = pd.DataFrame(columns=col)
 
         for i in cov_list:
-            we_tmp = UD_WoeEncoder(x_dtypes='cov', cut_method='dt')
-            we_tmp.ud_fit(df_copy[i], df_copy[self.label], prefix=i)
+            we_tmp = WoeEncoder(x_dtypes='cov', cut_method='dt')
+            we_tmp.fit(df_copy[i], df_copy[self.label], prefix=i)
 
             for interval, value in we_tmp.dmap.items():
                 if interval not in [unseen, unknown]:
@@ -168,8 +242,6 @@ class GENERATE_OUTPUT_FILES:
                                     stat[['depvar_rate', 'count_proportion']].applymap(
                                     lambda x: '{:.2f}%'.format(x * 100) if not np.isnan(x) else x)
         self.recoding_stat = stat
-
-        if write:
-            self.recoding_stat.to_excel(file, encoding=encoding, index=None)
-
+        if write_recoding_statement:
+            self.recoding_stat.to_excel(file_name, encoding=encoding, index=None)
         return self.recoding_stat
