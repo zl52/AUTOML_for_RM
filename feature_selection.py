@@ -3,11 +3,10 @@ import numpy as np
 import statsmodels.api as sm
 
 from tools import *
-from feature_evaluation import get_iv
+from feature_evaluation import get_iv, get_vif_cor
 from sample_splitter import sample_splitter
 from model_training import xgbt, rf
 from model_evaluation import get_xgb_fi
-
 
 ####################################################################################################
 ####################################################################################################
@@ -341,23 +340,7 @@ class FeatureFilter(object):
 
         return self.rfFI_filter_transform(df, label)
 
-    def lr_filter_fit(self, df, label, feat_cnt, alpha=0.05, stepwise=True):
-        """
-        Train Logistic Regression Model designed by forward selection / bidirectional selection.
-
-        Parameters
-        ----------
-        df: pd.DataFrame
-                The input dataframe
-        label: str
-                Label will be used to train models
-        feat_cnt: int
-                Number of features to keep at most
-        alpha: float
-                Significant level (p value) for model selection
-        stepwise: boolean
-                Use bidirectional stepwise selection        
-        """
+    def lr_pvalue_based_filter_fit(self, df, label, model_type='classification', bidirectional=True, feat_cnt=15, alpha=0.05):
         feat_left = list(set(df.columns.tolist()) - set(self.exclude_list + [label]))
         if sum(df[feat_left].dtypes == object) != 0:
             raise ValueError("LR model can't deal with categorical features")
@@ -370,11 +353,18 @@ class FeatureFilter(object):
 
             for i in feat_left:
                 new_feat = self.lr_important_feat + [i]
-                model_forward = sm.Logit(df[label], df[new_feat]).fit(disp=False)
+                if model_type == 'classification':
+                    model_forward = sm.Logit(df[label], df[new_feat]).fit(disp=False)
+                elif model_type == 'regression':
+                    model_forward = sm.OLS(df[label], df[new_feat]).fit(disp=False)
+                else:
+                    raise ValueError("Model type must be classification or regression")
                 score = model_forward.pvalues[i]
                 new_score_list.append((score, i))
 
             new_score_list.sort(reverse=True)
+            print(new_score_list)
+            print(model_forward.tvalues)
             best_score, feat_to_add = new_score_list.pop()
 
             if best_score <= alpha:
@@ -383,16 +373,93 @@ class FeatureFilter(object):
                 if not self.silent:
                     print(feat_to_add + ' enters: p-value = ' + str(np.round(best_score, 4)))
 
-            if stepwise:
-                model_backword = sm.Logit(df[label], df[self.lr_important_feat]).fit(disp=False)
+            if len(self.lr_important_feat)>1 and bidirectional:
+                if model_type == 'classification':
+                    model_backword = sm.Logit(df[label], df[self.lr_important_feat]).fit(disp=False)
+                elif model_type == 'regression':
+                    model_backword = sm.OLS(df[label], df[self.lr_important_feat]).fit(disp=False)
+                else:
+                    raise ValueError("Model type must be classification or regression")
+                print(model_backword.tvalues)
                 for i in self.lr_important_feat:
                     if model_backword.pvalues[i] > alpha:
                         self.lr_important_feat.remove(i)
-                        print(i + ' removed: p-value = ' + str(np.round(model_backword.pvalues[i], 4)))
+                        if not self.silent:
+                            print(i + ' removed: p-value = ' + str(np.round(model_backword.pvalues[i], 4)))
 
         print('\n' + '_ ' * 60 + ' \n')
         print('Features selected by Logistic Regression Model are shown as below:\n\n',
               '\n '.join(self.lr_important_feat))
+
+    def lr_score_based_filter_fit(self, df, label, model_type='classification', bidirectional=True, standard='bic'):
+        feat_left = list(set(df.columns.tolist()) - set([label]))
+        if sum(df[feat_left].dtypes == object) != 0:
+            raise ValueError("LR model can't deal with categorical features")
+
+        feat = np.abs(data.corr()['sales_count']).sort_values(ascending=False).index[1]
+        self.lr_important_feat = [feat]
+        if model_type == 'classification':
+            prev_model = sm.Logit(data[label], data[self.lr_important_feat]).fit(disp=False)
+        elif model_type == 'regression':
+            prev_model = sm.OLS(data[label], data[self.lr_important_feat]).fit(disp=False)
+        else:
+            raise ValueError("Model type must be classification or regression")
+        if standard=='bic':
+            best_score_all, best_score = prev_model.bic, 0
+        elif standard=='aic':
+            best_score_all, best_score = prev_model.aic, 0
+        else:
+            raise ValueError("standard type must be aic or bic")
+
+        while feat_left:
+            new_score_list = []
+            for i in feat_left:
+                new_feats = self.lr_important_feat + [i]
+                if model_type == 'classification':
+                    model_forward = sm.Logit(data[label], data[new_feats]).fit(disp=False)
+                elif model_type == 'regression':
+                    model_forward = sm.OLS(data[label], data[new_feats]).fit(disp=False)
+                if standard=='bic':
+                    score = model_forward.bic
+                if standard=='aic':
+                    score = model_forward.aic
+                new_score_list.append((score, 'add', i))
+
+            if len(self.lr_important_feat)>1 and bidirectional:
+                for i in self.lr_important_feat:
+                    new_feats = [f for f in self.lr_important_feat if f!=i]
+                    if model_type == 'classification':
+                        model_backward = sm.Logit(data[label], data[new_feats]).fit(disp=False)
+                    elif model_type == 'regression':
+                        model_backward = sm.OLS(data[label], data[new_feats]).fit(disp=False)
+                    if standard=='bic':
+                        score = model_backward.bic
+                    if standard=='aic':
+                        score = model_backward.aic
+                    new_score_list.append((score, 'remove', i))
+
+            new_score_list.sort(reverse=True)
+            best_score, how, feat = new_score_list.pop()
+
+            if float(best_score) < best_score_all:
+                best_score_all = best_score
+                if how=='remove':
+                    self.lr_important_feat.remove(feat)
+                    feat_left.append(feat)
+                    if not self.silent:
+                        print('%s added: %s = %f'%(feat, standard, np.round(score, 4)))
+
+                else:
+                    self.lr_important_feat.append(feat)
+                    feat_left.remove(feat)
+                    if not self.silent:
+                        print('%s removed: %s = %f'%(feat, standard, np.round(score, 4)))
+
+            else:
+                print('\n' + '_ ' * 60 + ' \n')
+                print('Features selected by Logistic Regression Model are shown as below:\n\n',
+                      '\n '.join(self.lr_important_feat))
+                break
 
     def lr_filter_transform(self, df, label):
         """
@@ -420,7 +487,8 @@ class FeatureFilter(object):
         except:
             raise ValueError("Some selected columns are not in the dataframe")
 
-    def lr_filter_fit_transform(self, df, label, feat_cnt, alpha=0.05, stepwise=True):
+    def lr_filter_fit_transform(self, df, label, score_based=True, model_type='classification', bidirectional=True, standard='bic', 
+                       feat_cnt=15, alpha=0.05):
         """
         Train LR model, order features by their performances in the model and return the dataframe.
         with important features
@@ -443,6 +511,9 @@ class FeatureFilter(object):
         df: pd.DataFrame
                 The output dataframe with filtered features
         """
-        self.lr_filter_fit(df, label, feat_cnt=feat_cnt, alpha=alpha, stepwise=stepwise)
+        if score_based:
+            self.lr_score_based_filter_fit(df, label, model_type=model_type, bidirectional=bidirectional, standard=standard)
+        else:
+            self.lr_pvalue_based_filter_fit(df, label, model_type=model_type, bidirectional=bidirectional, feat_cnt=feat_cnt, alpha=alpha)
 
         return self.lr_filter_transform(df, label)

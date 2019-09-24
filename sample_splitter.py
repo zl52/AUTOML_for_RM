@@ -60,12 +60,14 @@ def sample_splitter(df, label=None, dt_col=None, val_size=0.2, test_size=0.2, sp
             train = df.iloc[test_size:, ]
         print('train set ranges from %s to %s'%(train[dt_col].min(), train[dt_col].max()))
         print('test set ranges from %s to %s\n'%(test[dt_col].min(), test[dt_col].max()))
-        if drop_dt_col:
-            del df[dt_col]
     elif method == 'random':
         train, test = train_test_split(df, test_size=test_size, random_state=random_state)
     else:
         raise Exception('Method %s is not defined. Must chosen between \'random\' and \'oot\''%method)
+
+    if drop_dt_col:
+        del train[dt_col]
+        del test[dt_col]
 
     if val_size!=0:
         train, val = train_test_split(train, test_size=val_size/(1-test_size), random_state=random_state)

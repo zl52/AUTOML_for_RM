@@ -62,7 +62,7 @@ from sklearn.externals import joblib
 # 4. others
 
 import time
-from datetime import datetime
+import datetime
 
 import seaborn as sns
 import pyecharts

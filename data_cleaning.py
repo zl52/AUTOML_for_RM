@@ -177,7 +177,7 @@ class DataFilter(object):
         drop2 = stat[stat['missing_rate'] > self.missing_rate_thr].index.tolist()
         drop3 = stat[stat['HF_value_pct'] > self.HF_value_thr].index.tolist()
         self.exclude_list = drop1 + drop2 + drop3 + self.exclude_list
-        stat['unique_value_cnt'] = stat['unique_value_cnt'].astype(int)
+        stat['unique_value_cnt'] = stat['unique_value_cnt']
         stat[['missing_rate', 'coverage_rate']] = \
             stat[['missing_rate', 'coverage_rate']].applymap(lambda x: '{:.2f}%'.format(x * 100))
         if not self.silent:
