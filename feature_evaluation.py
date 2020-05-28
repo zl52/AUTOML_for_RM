@@ -9,6 +9,7 @@ mpl.style.use('ggplot')
 import seaborn as sns
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from sklearn.model_selection import train_test_split
+from sklearn.utils.multiclass import type_of_target
 from itertools import combinations
 from scipy.stats import norm
 import math
@@ -28,7 +29,7 @@ from model_evaluation import model_summary
 ####################################################################################################
 
 
-def get_iv(df, target=TARGET, trimmr=None, cav_appd_list=[], cov_appd_list=[], exclude_list=[],
+def get_iv(df, target, trimmr=None, cav_appd_list=[], cov_appd_list=[], exclude_list=[],
            bins=10, woe_min=-20, woe_max=20, **kwargs):
     """
     Calculate information value (IV) for each feature according to each target.
@@ -37,8 +38,8 @@ def get_iv(df, target=TARGET, trimmr=None, cav_appd_list=[], cov_appd_list=[], e
     ----------
     df: pd.DataFrame
             The input dataframe
-    target: list
-            List of default boolean targets
+    target: list or str
+            List of default boolean targets or target used as label in the modeling process
     cav_appd_list: list
             Extra categorical variables to be added
     cov_appd_list: list
@@ -63,11 +64,14 @@ def get_iv(df, target=TARGET, trimmr=None, cav_appd_list=[], cov_appd_list=[], e
             df_copy = trimmr.transform(df_copy)
         except:
             raise ValueError("The trimmer is not valid")
-    if type(target) == str:
+    if type(target) != list:
         target = [target]
-    cav_list = [i for i in df.select_dtypes(include=[object]).columns if i not in exclude_list + target]
-    cov_list = [i for i in df.select_dtypes(exclude=[object]).columns if i not in exclude_list + target]
-    df_iv = pd.DataFrame(index=cav_list + cov_list, columns=['iv_for_' + str(t) for t in target])
+    for i in target:
+        if type_of_target(df[i])!='binary':
+            raise ValueError("Label must be binary for computation of information value")
+    cav_list = list(set(df.select_dtypes(include=[object])) - set(target + exclude_list))
+    cov_list = list(set(df.select_dtypes(exclude=[object])) - set(target + exclude_list))
+    df_iv = pd.DataFrame(index=cav_list + cov_list, columns=['iv_for_%s'%t for t in target])
     df_copy[cav_list] = df_copy[cav_list].fillna('NA')
     df_copy[cov_list] = df_copy[cov_list].apply(lambda x: x.fillna(x.mean()), axis=1)
     for t in target:
@@ -102,13 +106,13 @@ def plot_corr(df):
     f, ax = plt.subplots(figsize=[0.5 * df.shape[1], 0.4 * df.shape[1]])
     corr = df.corr()
     sns.heatmap(corr,
-                mask=np.zeros_like(corr, dtype=np.bool),
-                cmap=sns.diverging_palette(220, 10, as_cmap=True),
-                square=True,
-                ax=ax)
+#             mask=np.zeros_like(corr, dtype=np.bool),
+#             cmap=sns.diverging_palette(220, 10, as_cmap=True),
+            square=True,
+            ax=ax)
 
 
-def get_vif_cor(df, target=TARGET, plot=False):
+def get_vif_cor(df, target=[], exclude_list=[], plot=False):
     """
     Calculate vifs and correlations of features in the dataframe.
 
@@ -118,8 +122,10 @@ def get_vif_cor(df, target=TARGET, plot=False):
             The input dataframe
     target: list
             List of default boolean targets
+    exclude_list: list
+            Columns to be excluded when calculating correlation
     plot: boolean
-            Plot correlation map
+            If True, plot correlation map
 
     Returns
     ----------
@@ -128,25 +134,23 @@ def get_vif_cor(df, target=TARGET, plot=False):
     cor: Dataframe
             Correlations of features in the dataframe
     """
-    col = [i for i in (set(df.columns) - set(target))]
+    col = list(set(df) - set(target) - set(exclude_list))
     df_tmp = df[col].select_dtypes(exclude=[object])
     df_tmp['intercept'] = 1
     vif = pd.DataFrame(index=df_tmp.columns)
     vif["vif"] = [variance_inflation_factor(df_tmp.values, i) for i in range(df_tmp.shape[1])]
     vif = vif.sort_values('vif', ascending=False)
     vif = vif.drop(['intercept'])
-    cor = df.corr()
-
-    if plot == True:
+    cor = df[col].select_dtypes(exclude=[object]).corr()
+    if plot:
         print("Correlation map of features\n")
-        plot_corr(df)
-
+        plot_corr(df[col].select_dtypes(exclude=[object]))
     return np.round(vif, 3), np.round(cor, 3)
 
 
 def remove_extr_outlier(df, feat, quantile=0.05, etra_ratio=1.2):
     """
-    Remove outliers in the dataframe.
+    Remove outliers in the designated feature.
 
     Parameters
     ----------
@@ -154,10 +158,10 @@ def remove_extr_outlier(df, feat, quantile=0.05, etra_ratio=1.2):
             The input dataframe
     feat: list
             List of features to be concerned
-    quantile: boolean
-            Plot correlation map
+    quantile: float
+            Designated quantiles
     etra_ratio: float
-            Threshold for defining ouliers
+            Ratio times designated quantiles to define ouliers
 
     Returns
     ----------
@@ -179,37 +183,42 @@ def plot_hist(df, feat, ax=None, extr_outlier_removed=False):
     Parameters
     ----------
     df: pd.Dataframe
-            the input dataframe
+            The input dataframe
     feat: str
             Feature to be plotted
     ax: matplotlib.axe
             Axe at which it plots
     extr_outlier_removed: boolean
-            Remove outliers
+            If True, remove outliers
     """
-    if ax is None:
+    if not ax:
         f, ax = plt.subplots()
     df_copy = df.copy()
     if extr_outlier_removed:
         df_copy = remove_extr_outlier(df_copy, feat)
-    sns.distplot(df_copy[feat].dropna(), ax=ax)
-    ax.set(xlabel=feat, ylabel="Distribution", title= "%s Distribution"%feat)
+    try:
+        sns.distplot(df_copy[feat].dropna(), ax=ax)
+    except:
+        sns.distplot(df_copy[feat].dropna(), ax=ax, kde=False)
+    ax.set(xlabel=feat, ylabel="Distribution", title= "Distribution for %s"%feat)
 
 
-def plot_hist_all(df, target=TARGET, extr_outlier_removed=False):
+def plot_hist_all(df, target=[], exclude_list=[], extr_outlier_removed=False):
     """
     Plot histograms for all features in the dataframe.
 
     Parameters
     ----------
     df: pd.Dataframe
-            the input dataframe
+            The input dataframe
     target: list
             List of default boolean targets
+    exclude_list: list
+            List excluded from being analyzed
     extr_outlier_removed: boolean
-            Remove outliers
+            If True, remove outliers
     """
-    col = [i for i in df.select_dtypes(exclude=[object]).columns if i not in set(target)]
+    col = list(set(df.select_dtypes(exclude=[object])) - set(target) - set(exclude_list))
     height = math.ceil(len(col)/6)
     fig_inx = 0
     fig, axes = plt.subplots(height,
@@ -243,85 +252,84 @@ def plot_joint_dist(df, feat, label, nunique_thr=10, ax=None, extr_outlier_remov
     ax: matplotlib.axe
             Axe at which it plots
     extr_outlier_removed: boolean
-            Remove outliers
+            If True, remove outliers
     """
-    if ax is None:
+    if not ax:
         f, ax = plt.subplots()
     if extr_outlier_removed:
         df_copy = remove_extr_outlier(df, feat)
     if df[feat].nunique() < nunique_thr:
         sns.barplot(x=feat, y=label, data=df_copy, ax=ax)
-        ax.set(title= 'barplot for' + feat)
+        ax.set(title= 'barplot for %s'%feat)
     else:
         sns.violinplot(x=label, y=feat, data=df_copy, ax=ax)
-        ax.set(title= 'violinplot for' + feat)
+        ax.set(title= 'violinplot for %s'%feat)
 
 
-def plot_joint_dist_all(df, target=TARGET[0], nunique_thr=10, extr_outlier_removed=False):
+def plot_joint_dist_all(df, label, target=[], exclude_list=[], nunique_thr=10, extr_outlier_removed=False):
     """
-    Plot joint distribution for all features in the dataframe
+    Plot joint distribution for all features in the dataframe.
 
     Parameters
     ----------
     df: pd.Dataframe
             The input dataframe
+    label: str
+            Label will be used in the modeling process
     target: list
             List of default boolean targets
+    exclude_list: list
+            List excluded from being analyzed
     nunique_thr: int
-            Unique value < 10, draw barplot; Unique value >= 10, draw violinplot
+            If unique values < 10, draw barplot; Else if unique values >= 10, draw violinplot
     extr_outlier_removed: boolean
-            Remove outliers
+            If True, remove outliers
     """
-    col = [i for i in df.select_dtypes(exclude=[object]).columns if i!=target]
-
-    # print("Plot barplots for categorical variables")
+    col = list(set(df.select_dtypes(exclude=[object])) - set(target) - set(exclude_list)) +  [label]
     bar_col = [i for i in col if df[i].nunique() < nunique_thr]
     height = math.ceil(len(bar_col)/6)
     fig_inx = 0
     fig, axes = plt.subplots(height,
-                             6 if len(bar_col)>=6 else len(bar_col),
-                             figsize=(30 if len(bar_col)>=6 else len(bar_col) * 5, 6 * height))
+                     6 if len(bar_col)>=6 else len(bar_col),
+                     figsize=(30 if len(bar_col)>=6 else len(bar_col) * 5, 6 * height))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
-                        wspace=None, hspace=0.3)
+                  wspace=None, hspace=0.3)
     for bc in bar_col:
         if len(bar_col)>=6:
             ax = axes[fig_inx//6][fig_inx%6]
         else:
             ax = axes[fig_inx]            
-        plot_joint_dist(df, bc, label=target, nunique_thr=nunique_thr, ax=ax, extr_outlier_removed=extr_outlier_removed)
+        plot_joint_dist(df, bc, label=label, nunique_thr=nunique_thr, ax=ax, extr_outlier_removed=extr_outlier_removed)
         fig_inx += 1
-    
-    # print("Plot violinplots for continuous variables")
-    vio_col = [i for i in col if df[i].nunique() >= nunique_thr]
+        vio_col = [i for i in col if df[i].nunique() >= nunique_thr]
     height = math.ceil(len(vio_col)/6)
     fig_inx = 0
     fig, axes = plt.subplots(height,
-                             6 if len(vio_col)>=6 else len(bar_col),
-                             figsize=(30 if len(vio_col)>=6 else len(vio_col) * 5, 6 * height))
+                     6 if len(vio_col)>=6 else len(bar_col),
+                     figsize=(30 if len(vio_col)>=6 else len(vio_col) * 5, 6 * height))
     plt.subplots_adjust(left=None, bottom=None, right=None, top=None,
-                        wspace=None, hspace=0.3)
+                  wspace=None, hspace=0.3)
     for vc in vio_col:
         if len(vio_col)>=6:
             ax = axes[fig_inx//6][fig_inx%6]
         else:
             ax = axes[fig_inx]
-
-        plot_joint_dist(df, vc, label=target, nunique_thr=nunique_thr, ax=ax, extr_outlier_removed=extr_outlier_removed)
+        plot_joint_dist(df, vc, label=label, nunique_thr=nunique_thr, ax=ax, extr_outlier_removed=extr_outlier_removed)
         fig_inx += 1
 
 
-def feature_combination(df, target=TARGET, num_boost_round=1000, params=XGB_PARAMS, pos_label=1,
+def feature_combination(df, label, num_boost_round=1000, params=XGB_PARAMS, pos_label=1,
                         exclude_list=[]):
     """
     Try out all combination of features in order to get best model.
-    (Warning: only used for comparisons of integrated scores.)
+    (Warning: only used for comparisons of integrated scores)
 
     Parameters
     ----------
     df: pd.Dataframe
             The input dataframe
-    target: list
-            List of default boolean targets
+    label: str
+            Label will be used in the modeling process
     num_boost_round: int
             num_boost_round
     params: dict
@@ -335,10 +343,10 @@ def feature_combination(df, target=TARGET, num_boost_round=1000, params=XGB_PARA
             Dataframe recording result (auc and ks)
     """
     if df.shape[1] >=10:
-        raise Exception("To many features")
-    col = [i for i in (set(df.columns) - set(target + exclude_list))]
+        raise Exception("Too many combinations to iterate")
+    col = list(set(df.columns) - set([label] + exclude_list))
     x = df[col]
-    y = df[target]
+    y = df[label]
     x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, random_state=42)
     xgb_res = pd.DataFrame()
     for i in range(2, x.shape[1] + 1):

@@ -22,7 +22,7 @@ def get_value(val_list, mult_val):
 
 def agg_statistics(df, uid, value, agg_func, suffix=''):
     """
-    Aggregate data by defined aggregate key and time span
+    Aggregate data by defined aggregate key and time span.
 
     : params df: the dataframe of current or latest samples we concern
     : params uid: column(s) by which history data are aggregated
@@ -39,14 +39,13 @@ def agg_statistics(df, uid, value, agg_func, suffix=''):
     tmp = df[uid + value].groupby(uid).agg(agg_func)
     tmp.columns = ['_'.join(col) for col in tmp.columns]
     tmp.columns = [col + suffix for col in tmp.columns]
-
     return tmp.reset_index(drop=False)
 
 
 def span_statistics(df, df_history, uid_key, agg_key, value, span_key, span_dic, agg_func):
     """
-    Apply RFM rule to do feature engineering where samples are aggregated by defined aggregate keys 
-    and limitted by defined time spans in combinations
+    Apply RFM rule to do feature engineering where samples are aggregated by defined aggregate keys
+    and limitted by defined time spans in combinations.
 
     : params df: the dataframe of current or latest samples we concern
     : params df_history: history data of concened samples
@@ -65,22 +64,19 @@ def span_statistics(df, df_history, uid_key, agg_key, value, span_key, span_dic,
                               'history_current_time_diff', {'5m': 300, '30m' : 1800}, [np.sum, np.mean])
     """
     final_df = df[uid_key + agg_key].drop_duplicates()
-
     for k, v in span_dic.items():
         df_tmp = df_history[df_history[span_key] <= v]
-
         for uid in agg_key:
             print('>>> uid', uid, '\t\t span', k)
             print(df_tmp[uid].nunique())
             df_agg = agg_statistics(df_tmp, uid_key + [uid], value, agg_func, k + '_by_' + uid)
             final_df = pd.merge(final_df, df_agg, how='left', on=uid_key + [uid])
-
     return final_df
 
 
 def nunique_stats(df, df_history, uid_key, value, feat):
     """
-    Derive a new feature by calculating each uid_key's number of unique values in the column we concern
+    Derive a new feature by calculating each uid_key's number of unique values in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -93,13 +89,12 @@ def nunique_stats(df, df_history, uid_key, value, feat):
     add = pd.DataFrame(df_history.groupby(uid_key)[value].nunique()).reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def cnt_stats(df, df_history, uid_key, value, feat):
     """
-    Derive a new feature by calculating each uid_key's notnull count in the column we concern
+    Derive a new feature by calculating each uid_key's notnull count in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -112,13 +107,12 @@ def cnt_stats(df, df_history, uid_key, value, feat):
     add = pd.DataFrame(df_history.groupby(uid_key)[value].count()).reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def max_stats(df, df_history, uid_key, value, feat):
     """
-    Derive a new feature by calculating each uid_key's maximum in the column we concern
+    Derive a new feature by calculating each uid_key's maximum in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -131,13 +125,12 @@ def max_stats(df, df_history, uid_key, value, feat):
     add = pd.DataFrame(df_history.groupby(uid_key)[value].max()).reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def min_stats(df, df_history, uid_key, value, feat):
     """
-    Derive a new feature by calculating each uid_key's minimum in the column we concern
+    Derive a new feature by calculating each uid_key's minimum in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -150,13 +143,12 @@ def min_stats(df, df_history, uid_key, value, feat):
     add = pd.DataFrame(df_history.groupby(uid_key)[value].min()).reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def any_stats(df, df_history, uid_key, value, feat, certain_value):
     """
-    Derive a new feature by calculating each uid_key whether to have a certain value in the column we concern
+    Derive a new feature by calculating each uid_key whether to have a certain value in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -171,13 +163,12 @@ def any_stats(df, df_history, uid_key, value, feat, certain_value):
         .reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def any_cnt_stats(df, df_history, uid_key, value, feat, certain_value):
     """
-    Derive a new feature by calculating each uid_key's maximum in the column we concern
+    Derive a new feature by calculating each uid_key's maximum in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -191,13 +182,12 @@ def any_cnt_stats(df, df_history, uid_key, value, feat, certain_value):
                        .apply(lambda x: len(np.where(x == certain_value)[0]))).reset_index()
     add = add.rename(columns={value: feat})
     df = pd.merge(df, add, on=uid_key, how='left')
-
     return df
 
 
 def most_frequent(x):
     """
-    Calculate most frequent number or string
+    Calculate most frequent number or string.
 
     : params x: the input column
     : return: most frequent number or string
@@ -207,7 +197,7 @@ def most_frequent(x):
 
 def mode_stats(df, df_history, uid_key, value, feat):
     """
-    Derive a new feature by calculating each uid_key's mode in the column we concern
+    Derive a new feature by calculating each uid_key's mode in the column we concern.
 
     : params df: current or latest samples we concern
     : params df_history: history data of concened sample
@@ -221,15 +211,11 @@ def mode_stats(df, df_history, uid_key, value, feat):
         add = pd.DataFrame(df_history.groupby(uid_key)[value].apply(most_frequent)).reset_index()
         add = add.rename(columns={value: feat})
         df = pd.merge(df, add, on=uid_key, how='left')
-
     elif type(data[value].iloc[0]) != object:
-        add = pd.DataFrame(df_history.groupby(uid_key)[value] \
-                           .apply(lambda x: stats.mode(x, nan_policy='omit')[0][0])) \
-            .reset_index()
+        add = pd.DataFrame(df_history.groupby(uid_key)[value].apply(lambda x: stats.mode(x, nan_policy='omit')[0][0]))\
+                                                             .reset_index()
         add = add.rename(columns={value: feat})
         df = pd.merge(df, add, on=uid_key, how='left')
-
     else:
         print('Can not handle type Object')
-
     return df

@@ -15,7 +15,7 @@ class GenerateOutputFiles:
     def __init__(self,
                  df_ori,
                  label,
-                 target=TARGET,
+                 target=[],
                  exclude_list=[]):
         """
         Parameters
@@ -55,8 +55,7 @@ class GenerateOutputFiles:
         with HiddenPrints():
             basic_transformr = FeatureTransformer(target=self.target, drop_features=True, silent=silent,
                                                   recoding_dict=self.recoding_dict, feat_dict=self.feat_dict)
-            df = basic_transformr.fit_transform(df, label=self.label, fit_action=useTransformr,
-                                                transform_action=useTransformr,exclude_list=self.exclude_list)
+            df = basic_transformr.fit_transform(df, label=self.label, action=useTransformr, exclude_list=self.exclude_list)
 
             trimmr = FeatureTrimmer(target=self.target, silent=silent, recoding_dict=self.recoding_dict,
                                     feat_dict=self.feat_dict)
@@ -133,7 +132,7 @@ class GenerateOutputFiles:
 
         Returns
         ----------
-        df_copy: pd.DataFrame
+        df: pd.DataFrame
                 Recoded dataframe
         """
         df = df_e.copy()
@@ -144,7 +143,7 @@ class GenerateOutputFiles:
         return df
 
     def woe_recoding_stat(self, file_name, encoding="utf-8", unseen='<UNSEEN>*', unknown='<NA>*', 
-                          write_recoding_statement=True):
+                          cut_method='qcut', write_recoding_statement=True):
         """
         Output recoding woe recoding statistics.
 
@@ -161,86 +160,68 @@ class GenerateOutputFiles:
         write_recoding_statement: boolean
                 Write recoding statement
         """
-        df_copy = self.df_ori.copy()
-        cav_list = self.df_ori[list(self.feats)].select_dtypes(include=[object]).columns.tolist()
-        cov_list = self.df_ori[list(self.feats)].select_dtypes(exclude=[object]).columns.tolist()
+        df = self.df_ori.copy()
+        cav_list = df[list(self.feats)].select_dtypes(include=[object]).columns.tolist()
+        cov_list = df[list(self.feats)].select_dtypes(exclude=[object]).columns.tolist()
+        cav_list = cav_list + [i for i in cov_list if df[i].nunique()<=5]
+        cov_list = [i for i in cov_list if df[i].nunique()>5]
         col = ['feature', 'iv', 'woe', 'group','depvar_count', 'depvar_rate', 'count', 'count_proportion',
-               'lift', 'max', 'min']
+               'lift', 'min', 'max']
         cav_recoding_stat = pd.DataFrame(columns=col)
-
         for i in cav_list:
-            we_tmp = WoeEncoder(x_dtypes='cav', cut_method='dt')
-            we_tmp.fit(df_copy[i], df_copy[self.label], prefix=i)
-            df_map = pd.DataFrame([we_tmp.dmap], index=['value']).T.drop([unseen], axis=0)
+            encodr = WoeEncoder(x_dtypes='cav', cut_method=cut_method)
+            encodr.fit(df[i], df[self.label], prefix=i)
+            df_map = pd.DataFrame([encodr.dmap], index=['value']).T.drop([unseen], axis=0)
             df_map = df_map.reset_index(drop=False).set_index('value')
-            df_copy[i].fillna(unknown, inplace=True)
+            df[i].fillna(unknown, inplace=True)
             df_map2 = df_map[df_map['index'] != unknown]
-
             for value in df_map2.index.unique():
                 if type(df_map2.loc[value, 'index']) != pd.Series:
                     group_list = [df_map2.loc[value, 'index']]
-
                 else:
                     group_list = df_map2.loc[value, 'index'].values.tolist()
-
-                tmp = df_copy.loc[[x in group_list for x in df_copy[i]],]
-                cav_recoding_stat = \
-                    pd.concat([cav_recoding_stat,
-                               pd.DataFrame([i, we_tmp.iv[0], value, str(group_list),
-                                             tmp[self.label].sum(), tmp[self.label].mean(),
-                                             tmp[self.label].count(), tmp[self.label].count() / len(df_copy),
-                                             tmp[self.label].mean() * 100 / df_copy[self.label].mean(),
-                                             np.nan, np.nan], index=col).T],
-                              axis=0)
-
-            tmp = df_copy[df_copy[i] == unknown]
-            cav_recoding_stat = \
-                pd.concat([cav_recoding_stat,
-                           pd.DataFrame([i, we_tmp.iv[0], df_map[df_map['index'] == unknown].index[0],
-                                         unknown, tmp[self.label].sum(), tmp[self.label].mean(),
-                                         tmp[self.label].count(), tmp[self.label].count() / len(df_copy),
-                                         tmp[self.label].mean() * 100 / df_copy[self.label].mean(),
-                                         np.nan, np.nan], index=col).T],
-                          axis=0)
-
+                sub_df = df.loc[[x in group_list for x in df[i]],]
+                tmp = pd.DataFrame([i, encodr.iv, value, str(group_list),
+                                    sub_df[self.label].sum(), sub_df[self.label].mean(),
+                                    sub_df[self.label].count(), sub_df[self.label].count() / len(df),
+                                    sub_df[self.label].mean() * 100 / df[self.label].mean(),
+                                    np.nan, np.nan], index=col).T
+                cav_recoding_stat = pd.concat([cav_recoding_stat, tmp], axis=0)
+            sub_df = df[df[i] == unknown]
+            tmp = pd.DataFrame([i, encodr.iv, df_map[df_map['index'] == unknown].index[0],
+                                unknown, sub_df[self.label].sum(), sub_df[self.label].mean(),
+                                sub_df[self.label].count(), sub_df[self.label].count() / len(df),
+                                sub_df[self.label].mean() * 100 / df[self.label].mean(),
+                                np.nan, np.nan], index=col).T
+            cav_recoding_stat = pd.concat([cav_recoding_stat, tmp], axis=0)
+            
         cov_recoding_stat = pd.DataFrame(columns=col)
-
         for i in cov_list:
-            we_tmp = WoeEncoder(x_dtypes='cov', cut_method='dt')
-            we_tmp.fit(df_copy[i], df_copy[self.label], prefix=i)
-
-            for interval, value in we_tmp.dmap.items():
+            encodr = WoeEncoder(x_dtypes='cov', cut_method=cut_method)
+            encodr.fit(df[i], df[self.label], prefix=i)
+            for interval, value in encodr.dmap.items():
                 if interval not in [unseen, unknown]:
-                    tmp = df_copy.loc[[x in interval for x in df_copy[i]],]
-                    cov_recoding_stat = \
-                        pd.concat([cov_recoding_stat,
-                                   pd.DataFrame([i, we_tmp.iv[0], value, interval, tmp[self.label].sum(),
-                                                 tmp[self.label].mean(), tmp[self.label].count(),
-                                                 tmp[self.label].count() / len(df_copy),
-                                                 tmp[self.label].mean() * 100 / df_copy[self.label].mean(),
-                                                 tmp[i].max(), tmp[i].min()], index=col).T],
-                                  axis=0)
-
+                    sub_df = df.loc[[x in interval for x in df[i]],]
+                    tmp = pd.DataFrame([i, encodr.iv, value, interval, sub_df[self.label].sum(),
+                                        sub_df[self.label].mean(), sub_df[self.label].count(),
+                                        sub_df[self.label].count() / len(df),
+                                        sub_df[self.label].mean() * 100 / df[self.label].mean(),
+                                        sub_df[i].min(), sub_df[i].max()], index=col).T
+                    cov_recoding_stat = pd.concat([cov_recoding_stat, tmp], axis=0)
                 elif interval == unknown:
-                    tmp = df_copy[df_copy[i].isnull()]
-                    cov_recoding_stat = \
-                        pd.concat([cov_recoding_stat,
-                                   pd.DataFrame([i, we_tmp.iv[0], value, interval, tmp[self.label].sum(),
-                                                 tmp[self.label].mean(), tmp[self.label].count(),
-                                                 tmp[self.label].count() / len(df_copy),
-                                                 tmp[self.label].mean() * 100 / df_copy[self.label].mean(),
-                                                 np.nan, np.nan], index=col).T],
-                                  axis=0)
-
-        cov_recoding_stat.sort_values(by=['iv', 'feature', 'group'], ascending=[False, False, True],
-                                      inplace=True)
-        cav_recoding_stat.sort_values(by=['iv', 'feature', 'group'], ascending=[False, False, False],
-                                      inplace=True)
-
+                    sub_df = df[df[i].isnull()]
+                    tmp = pd.DataFrame([i, encodr.iv, value, interval, sub_df[self.label].sum(),
+                                        sub_df[self.label].mean(), sub_df[self.label].count(),
+                                        sub_df[self.label].count() / len(df),
+                                        sub_df[self.label].mean() * 100 / df[self.label].mean(),
+                                        np.nan, np.nan], index=col).T
+                    cov_recoding_stat = pd.concat([cov_recoding_stat, tmp], axis=0)
+        cov_recoding_stat.sort_values(by=['iv', 'feature', 'group'], ascending=[False, False, True], inplace=True)
+        cav_recoding_stat.sort_values(by=['iv', 'feature', 'group'], ascending=[False, False, False], inplace=True)
         stat = pd.concat([cov_recoding_stat, cav_recoding_stat], axis=0)
-        stat[['depvar_rate', 'count_proportion']] = \
-                                    stat[['depvar_rate', 'count_proportion']].applymap(
-                                    lambda x: '{:.2f}%'.format(x * 100) if not np.isnan(x) else x)
+        stat.sort_values(by=['iv', 'feature'], ascending=[False, False], inplace=True)
+        stat[['depvar_rate', 'count_proportion']] = stat[['depvar_rate', 'count_proportion']].applymap(
+                                                    lambda x: '{:.2f}%'.format(x * 100) if not np.isnan(x) else x)
         self.recoding_stat = stat
         if write_recoding_statement:
             self.recoding_stat.to_excel(file_name, encoding=encoding, index=None)

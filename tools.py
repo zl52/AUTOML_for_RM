@@ -5,7 +5,8 @@ import random
 import string
 import sys
 import os
-
+import sklearn
+from sklearn.utils.multiclass import type_of_target
 
 # from import_packages import *
 
@@ -63,30 +64,22 @@ def md5(s):
 
 def passwd():
     """
-    Generate random password
+    Generate random password.
     """
     salt = ''.join(random.sample(string.ascii_letters + string.digits, 8))
     print(salt)
     return salt
 
 
-def cutid(df, id, file):
-    writer = open(file, 'w')
-    k = 1
-    for line in df[id]:
-        line = str(line)
-        line = line.strip()
-        if k == 1:
-            writer.write("\'" + line + "\'")
-        else:
-            writer.write("," + "\'" + line + "\'")
-        k = k + 1
-    writer.close()
+def default_target(OD_TARGET=[0, 1, 3, 7]):
+    return ['d{i}'.format(i=i) for i in OD_TARGET]
 
 
-def default_target(OD_TARGET):
-    target = ['d{i}'.format(i=i) for i in OD_TARGET]
-    return (target)
+def ud_type_of_target(lst, multiclass_thr=10):
+    tot = type_of_target(lst)
+    if tot=='multiclass' and len(np.unique(lst))>multiclass_thr:
+        tot = 'continuous'
+    return tot
 
 
 def select_uncovered_data(df_label, df_feature, left_on, right_on, key='individual_identity', na=-9999):
@@ -122,15 +115,17 @@ def select_uncovered_data(df_label, df_feature, left_on, right_on, key='individu
 ####################################################################################################
 
 
-## day of payment delay
+## day of payment delayed
 OD_TARGET = [0, 1, 3, 7]
 
 ####################################################################################################
 ## labels： default labels are 'd0', 'd1', 'd3', 'd7'
+## 'd' refers to day of payment delayed. Design of labels in risk management model usually consider these targets.
+## 'd1' is boolean referring to whether customer fulfills the payments within 1 day after due date.
 
 TARGET = default_target(OD_TARGET)
-# TARGET = 'label'
-# TARGET = 'is_bad'
+# TARGET = ['label']
+# TARGET = ['is_bad']
 
 ####################################################################################################
 

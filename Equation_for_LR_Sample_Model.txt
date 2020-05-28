@@ -1,0 +1,13 @@
+df.loc[:,'intercept'] = 1
+df['logit'] = \
+              (5.364118105615145) * df['yys_friendMap_te'] + \
+              (-0.6355999630626682) * df['td_final_decision_Accept_oe'] + \
+              (-0.0018014017249000478) * df['td_final_score_log_ce'] + \
+              (0.6086260449525432) * df['umeng_app_score_log_we'] + \
+              (0.8371915074390618) * df['yys_specialCate7TalkNum_square_we'] + \
+              (1.0296155332773493) * df['geo_A3_RSL_we'] + \
+              (-0.1732021127946436) * df['umeng_device_price_log_be'] + \
+              (0.6745327551325209) * df['baidu_risk_blacklevel_we'] + \
+              (-1.593816062674185) * df['intercept'] + 0
+
+df['score'] = [1/(1+exp(-logit)) for logit in df['logit']]

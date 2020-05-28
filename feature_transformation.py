@@ -22,7 +22,7 @@ class FeatureTransformer():
     """
 
     def __init__(self,
-                 target=TARGET,
+                 target=[],
                  drop_features=True,
                  silent=False,
                  recoding_dict=None,
@@ -31,11 +31,11 @@ class FeatureTransformer():
         Parameters
         ----------
         target: list
-                List of default boolean targets
+                List of default targets
         drop_features: boolean
-                Drop original feature
+                If True, drop original feature after transformation
         silent: boolean
-                Restrict the print of transformation process
+                If True, restrict the print of transformation process
         recoding_dict: dict
                 Dictionary recording recoding statements for each feature
         feat_dict: dict
@@ -54,7 +54,7 @@ class FeatureTransformer():
         Parameters
         ----------
         x: pd.Series
-                Feature to be transformed, pd.series of shape (n_samples,)
+                Independent variable to be transformed, pd.series of shape (n_samples,)
         y: pd.Series
                 Dependent variable
 
@@ -66,7 +66,7 @@ class FeatureTransformer():
         x = x.apply(np.square)
         self.__dict__.update({'%s_transformer'%x.name: 'square'})
         x.name = x.name + '_square'
-        return x
+        return np.round(x, 6)
 
     def sqrt_fit_transform(self, x, y=None):
         """
@@ -75,7 +75,7 @@ class FeatureTransformer():
         Parameters
         ----------
         x: pd.Series
-                Feature to be transformed, pd.series of shape (n_samples,)
+                Independent variable to be transformed, pd.series of shape (n_samples,)
         y: pd.Series
                 Dependent variable
 
@@ -87,7 +87,7 @@ class FeatureTransformer():
         x = x.apply(lambda x: np.sqrt(max(x, 0)))
         self.__dict__.update({'%s_transformer'%x.name: 'sqrt'})
         x.name = x.name + '_sqrt'
-        return x
+        return np.round(x, 6)
 
     def log_fit_transform(self, x, y=None):
         """
@@ -96,7 +96,7 @@ class FeatureTransformer():
         Parameters
         ----------
         x: pd.Series
-                Feature to be transformed, pd.series of shape (n_samples,)
+                Independent variable to be transformed, pd.series of shape (n_samples,)
         y: pd.Series
                 Dependent variable
 
@@ -108,68 +108,11 @@ class FeatureTransformer():
         x = x.apply(lambda x: np.log(max(x, 0.00001)))
         self.__dict__.update({'%s_transformer'%x.name: 'log'})
         x.name = x.name + '_log'
-        return x
+        return np.round(x, 6)
 
-    def best_single_fit_transform(self, x, y, fit_action=True, write_recoding_statement=True):
+    def fit(self, df, label, exclude_list=[]):
         """
-        Find the best transformation for the feature.
-
-        Parameters
-        ----------
-        x: pd.Series
-                Feature to be transformed, pd.series of shape (n_samples,)
-        y: pd.Series
-                Dependent variable
-        fit_action: boolean
-                Take action when fit_action is True. Otherwise return origin values
-        write_recoding_statement: boolean
-                Write recoding statement
-
-        Returns
-        ----------
-        x: pd.series of shape (n_samples,)
-                Transformed feature
-        """
-        if y is None:
-            raise Exception('Transformation selection needs valid y label.')
-        ori_name = x.name
-        recoding_statement = ""
-        if fit_action:
-            x_square = self.square_fit_transform(x, y=None)
-            x_sqrt = self.sqrt_fit_transform(x, y=None)
-            x_log = self.log_fit_transform(x, y=None)
-            df_trans = pd.DataFrame({'x_ori': x, 'x_square': x_square,
-                                     'x_sqrt': x_sqrt, 'x_log': x_log, 'label': y}).dropna()
-            f_stat, _ = f_regression(df_trans.drop('label', axis=1), df_trans['label'])
-            if np.argmin(f_stat) == 0:
-                self.__dict__.update({'%s_transformer'%ori_name: 'without'})
-            elif np.argmin(f_stat) == 1:
-                x = x_square
-                self.__dict__.update({'%s_transformer'%ori_name: 'square'})
-                recoding_statement += "\ndf['%s'] = df['%s'].apply(np.square)" %(x.name, ori_name)
-            elif np.argmin(f_stat) == 2:
-                x = x_sqrt
-                self.__dict__.update({'%s_transformer'%ori_name: 'sqrt'})
-                recoding_statement += "\ndf['%s'] = df['%s'].apply(lambda x: np.sqrt(max(x, 0)))" %(x.name, ori_name)
-
-            elif np.argmin(f_stat) == 3:
-                x = x_log
-                self.__dict__.update({'%s_transformer'%ori_name: 'log'})
-                recoding_statement += "\ndf['%s'] = df['%s'].apply(lambda x: np.log(max(x, 0.00001)))" %(x.name, ori_name)
-
-            if write_recoding_statement and self.recoding_dict is not None and self.feat_dict is not None:
-                self.recoding_dict[ori_name] += recoding_statement
-                self.feat_dict.update({ori_name: x.name})
-        else:
-            self.__dict__.update({'%s_transformer' %ori_name: 'without'})
-        if not self.silent:
-            print('Best transformation for %s is %s transformation' %(ori_name, 
-                                                    self.__dict__.get('%s_transformer' %ori_name)))
-        return x
-
-    def fit(self, df, label, fit_action=True, exclude_list=[], write_recoding_statement=True):
-        """
-        Find the best transformation for each feature in the the input dataframe.
+        Find the best transformation for each feature in the input dataframe.
 
         Parameters
         ----------
@@ -177,33 +120,41 @@ class FeatureTransformer():
                 The input dataframe
         label: str
                 Label will be used in the modeling process
-        fit_action: boolean
-                Fit transformer when the param is True
         exclude_list: list
-                List of features excluded from being fitted
-        write_recoding_statement: boolean
-                Write recoding statement
+                List of features excluded
         """
         df = df.apply(pd.to_numeric, errors='ignore')
-        col = [i for i in df.select_dtypes(include=[float, int, 'int64']).columns \
-               if i not in self.target + [label]]
-        if fit_action:
-            for i in set(col) - set(exclude_list):
-                self.best_single_fit_transform(x=df[i], y=df[label], fit_action=True, 
-                                               write_recoding_statement=write_recoding_statement)
+        col = set(list(df.select_dtypes(exclude=[object]))) - set(self.target + [label])
+        for ori_name in col:
+            if ori_name not in exclude_list:
+                x = df[ori_name]
+                y = df[label]
+                x_square = self.square_fit_transform(x, y=None)
+                x_sqrt = self.sqrt_fit_transform(x, y=None)
+                x_log = self.log_fit_transform(x, y=None)
+                df_trans = pd.DataFrame({'x_ori': x, 'x_square': x_square,
+                                         'x_sqrt': x_sqrt, 'x_log': x_log, 'label': y}).dropna()
+                f_stat, _ = f_regression(df_trans.drop('label', axis=1), df_trans['label'])
+                if np.argmin(f_stat) == 0:
+                    self.__dict__.update({'%s_transformer'%ori_name: 'without'})
+                elif np.argmin(f_stat) == 1:
+                    x = x_square
+                    self.__dict__.update({'%s_transformer'%ori_name: 'square'})
+                elif np.argmin(f_stat) == 2:
+                    x = x_sqrt
+                    self.__dict__.update({'%s_transformer'%ori_name: 'sqrt'})
+                elif np.argmin(f_stat) == 3:
+                    x = x_log
+                    self.__dict__.update({'%s_transformer'%ori_name: 'log'})
+                if not self.silent:
+                    print('Best transformation for %s is %s transformation' %(ori_name, 
+                          self.__dict__.get('%s_transformer' %ori_name)))
+            else:
+                self.__dict__.update({'%s_transformer'%ori_name: 'without'})
 
-            for i in set(col) & set(exclude_list):
-                self.best_single_fit_transform(x=df[i], y=df[label], fit_action=False,
-                                               write_recoding_statement=write_recoding_statement)
-
-        else:
-            for i in col:
-                self.best_single_fit_transform(x=df[i], y=df[label], fit_action=False,
-                                               write_recoding_statement=write_recoding_statement)
-
-    def transform(self, df, label, transform_action=False, exclude_list=[]):
+    def transform(self, df, label, action=True, exclude_list=[], write_recoding_statement=True):
         """
-        Find the best transformation for each feature in the the input dataframe.
+        Transform features in the input dataframe.
 
         Parameters
         ----------
@@ -211,46 +162,54 @@ class FeatureTransformer():
                 The input dataframe
         label: str
                 Label will be used in the modeling process
-        transform_action: boolean
-                Take action when the param is True. Otherwise return origin values
+        action: boolean
+                If True, take action. Otherwise return origin values
         exclude_list: list
                 List of features excluded from being transformed
+        write_recoding_statement: boolean
+                If True, write recoding statement
 
         Returns
         ----------
         df: pd.DataFrame
-                Transformed dataframe
+                Dataframe with some features transformed
         """
         df = df.apply(pd.to_numeric, errors='ignore')
-        col = [i for i in df.select_dtypes(include=[float, int, 'int64']).columns \
-               if i not in self.target + [label]]
-
-        if transform_action:
-            for i in set(col) - set(exclude_list):
+        col = set(list(df.select_dtypes(exclude=[object]))) - set(self.target + [label])
+        if action:
+            if not self.silent:
+                print("Transform continuous features in the dataframe")
+            for ori_name in col - set(exclude_list):
                 try:
-                    transformr = self.__dict__.get(i + '_transformer')
+                    transformr = self.__dict__.get('%s_transformer'%ori_name)
+                    new_name = ori_name
+                    recoding_statement = ''
                     if transformr == 'square':
-                        df['%s_square'%i] = self.square_fit_transform(df[i], y=None)
+                        new_name = '%s_square'%ori_name
+                        df[new_name] = self.square_fit_transform(x=df[ori_name], y=label)
+                        recoding_statement += "\ndf['%s'] = np.round(df['%s'].apply(np.square), 6)" %(new_name, ori_name)
                     elif transformr == 'sqrt':
-                        df['%s_sqrt'%i] = self.sqrt_fit_transform(df[i], y=None)
+                        new_name = '%s_sqrt'%ori_name
+                        df[new_name] = self.sqrt_fit_transform(x=df[ori_name], y=label)
+                        recoding_statement += "\ndf['%s'] = np.round(df['%s'].apply(lambda x: np.sqrt(max(x, 0))), 6)" %(new_name, ori_name)
                     elif transformr == 'log':
-                        df['%s_log'%i] = self.log_fit_transform(df[i], y=None)
-                    elif transformr == 'without':
-                        pass
+                        new_name = '%s_log'%ori_name
+                        df[new_name] = self.log_fit_transform(x=df[ori_name], y=label)
+                        recoding_statement += "\ndf['%s'] = np.round(df['%s'].apply(lambda x: np.log(max(x, 0.00001))), 6)" %(new_name, ori_name)
                     if self.drop_features and transformr != 'without':
-                        del df[i]
-                except:
-                    print('%s\'s transformer is not defined'%i)
-
-        else:
-            pass
+                        del df[ori_name]
+                    if write_recoding_statement and self.recoding_dict is not None and self.feat_dict is not None:
+                        self.recoding_dict[ori_name] += recoding_statement
+                        self.feat_dict.update({ori_name: new_name})
+                except Exception as e:
+                    print('Failed to transform %s\''%ori_name)
+                    print(e)
 
         return df
 
-    def fit_transform(self, df, label, fit_action=True, transform_action=True, exclude_list=[],
-                      write_recoding_statement=True):
+    def fit_transform(self, df, label, action=True, exclude_list=[], write_recoding_statement=True):
         """
-        Find the best transformation for each feature in the the input dataframe.
+        Find the best transformation for each feature in the input dataframe and Transform features in the input dataframe.
 
         Parameters
         ----------
@@ -258,21 +217,18 @@ class FeatureTransformer():
                 The input dataframe
         label: str
                 Label will be used in the modeling process
-        fit_action: boolean
-                Fit transformer when the param is True
-        transform_action: boolean
-                Take action when the param is True. Otherwise return origin values
+        action: boolean
+                If True, take action. Otherwise return origin values
         exclude_list: list
-                List of features excluded from being fitted and transformed
+                List of features excluded from being transformed
         write_recoding_statement: boolean
-                Write recoding statement
+                If True, write recoding statement
 
         Returns
         ----------
         df: pd.DataFrame
-                Transformed dataframe
+                Dataframe with some features transformed
         """
-        self.fit(df, label=label, fit_action=fit_action, exclude_list=exclude_list,
-                 write_recoding_statement=write_recoding_statement)
-        return self.transform(df, label=label, transform_action=transform_action,
-                                     exclude_list=exclude_list)
+        self.fit(df, label=label, exclude_list=exclude_list)
+        return self.transform(df, label=label, action=action, exclude_list=exclude_list,
+                              write_recoding_statement=write_recoding_statement)

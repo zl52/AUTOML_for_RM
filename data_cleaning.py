@@ -17,7 +17,7 @@ from tools import *
 
 def plot_missingno(df):
     """
-    Visualize missing data.
+    Visualize the nullity of the given dataframe.
 
     Parameters
     ----------
@@ -26,8 +26,11 @@ def plot_missingno(df):
     """
     col_num = df.shape[1]
     msno.matrix(df, labels=True, figsize=(col_num/1.5, 6), fontsize=10)
+    print('Figure 1: A matrix visualization of the nullity of the given DataFrame')
     msno.bar(df, figsize=(col_num/1.5, 6), fontsize=10)
+    print('Figure 2: A bar chart visualization of the nullity of the given DataFrame')
     msno.heatmap(df, figsize=(col_num/2, col_num/3.2), fontsize=10)
+    print('Figure 3: Presents a \'seaborn\' heatmap visualization of nullity correlation in the given DataFrame')
 
 
 def na_detection(df, na_list_appd=[]):
@@ -44,18 +47,17 @@ def na_detection(df, na_list_appd=[]):
     Returns
     ----------
     df: pd.DataFrame
-            The output dataframe where "NA"s are replaced
+            The output dataframe where na strings are replaced with np.nan
     """
     na_list = ['', 'null', 'NULL', 'Null', 'NA', 'na', 'Na', 'nan', 'NAN', 'Nan', 'NaN', '未知', '无'] \
               + na_list_appd
     df = df.replace(na_list, np.nan)
-
     return df
 
 
-def desc_stat(df, target=TARGET, is_ratio_pct=True, use_formater=True, silent=True):
+def desc_stat(df, target=[], is_ratio_pct=True, use_formater=True, silent=True):
     """
-    Generate descriptive statistical summary, including missing count, missing rate, coverage count,
+    Generate descriptive statistical summary, including missing value count, missing rate, coverage count,
     coverage rate, unique-value-count, high-frequency-value, high-frequency-value's count,
     high-frequency-value's probability of occurrence, 1% percentile and 99% percentile.
 
@@ -64,13 +66,13 @@ def desc_stat(df, target=TARGET, is_ratio_pct=True, use_formater=True, silent=Tr
     df: pd.DataFrame
             The input dataframe
     target: list
-            list of default boolean targets
+            list of target columns
     is_ratio_pct: boolean
-            Output ratio in percentage
+            If True, display ratio in percentage
     use_formater: boolean
-            Output float numbers in format
+            If True, display float numbers in format
     silent: boolean
-            Restrict the print of detail statements
+            If True, restrict the print of detailed statements
 
     Returns
     ----------
@@ -78,11 +80,11 @@ def desc_stat(df, target=TARGET, is_ratio_pct=True, use_formater=True, silent=Tr
             Statistical summary  
     """
     df = na_detection(df)
-    col = [i for i in (set(df.columns) - set(target))]
-    cav_list = [i for i in col if i in df.select_dtypes(include=[object]).columns]
-    cov_list = [i for i in col if i in df.select_dtypes(exclude=[object]).columns]
+    cav_list = list(set(df.select_dtypes(include=[object])) - set(target))
+    cov_list = list(set(df.select_dtypes(exclude=[object])) - set(target))
+    col = cav_list + cov_list
 
-    # statistical summary for categorical features
+    # statistical summary for continuous columns
     try:
         stat_cov = df[cov_list].describe().T
         col_name = stat_cov.columns.tolist()
@@ -95,7 +97,7 @@ def desc_stat(df, target=TARGET, is_ratio_pct=True, use_formater=True, silent=Tr
         stat_cov = pd.DataFrame()
         print('There are no continous variables or quantiles failed to calculate')
 
-    # statistical summary for continuous features
+    # statistical summary for categorical columns
     try:
         stat_cav = df[cav_list].describe().T.drop(['freq', 'top', 'unique'],axis=1)
     except:
@@ -110,31 +112,28 @@ def desc_stat(df, target=TARGET, is_ratio_pct=True, use_formater=True, silent=Tr
         coverage_rate=df[col].apply(lambda x: x.count() / len(x), axis=0),
         unique_value_cnt=df[col].apply(lambda x: x.nunique(), axis=0),
         # HF: high-frequency
-        HF_value=df[col].apply(lambda x: x.value_counts().index[0] \
-                               if x.count() != 0 else np.nan, axis=0),
-        HF_value_cnt=df[col].apply(lambda x: x.value_counts().iloc[0] \
-                                   if x.count() != 0 else np.nan, axis=0),
-        HF_value_pct=df[col].apply(lambda x: x.value_counts().iloc[0] / len(x) \
-                                   if x.count() != 0 else np.nan, axis=0))
+        HF_value=df[col].apply(lambda x: x.value_counts().index[0] if x.count() != 0 else np.nan, axis=0),
+        HF_value_cnt=df[col].apply(lambda x: x.value_counts().iloc[0] if x.count() != 0 else np.nan, axis=0),
+        HF_value_pct=df[col].apply(lambda x: x.value_counts().iloc[0] / len(x) if x.count() != 0 else np.nan, axis=0))
     stat['count'] = stat['count'].astype(int)
     if is_ratio_pct:
-        stat[['missing_rate', 'coverage_rate', 'HF_value_pct']] = \
-            stat[['missing_rate', 'coverage_rate', 'HF_value_pct']].applymap(lambda x: '{:.2f}%'.format(x * 100))
+        trans_col = ['missing_rate', 'coverage_rate', 'HF_value_pct']
+        stat[trans_col] = stat[trans_col].applymap(lambda x: '{:.2f}%'.format(x * 100))
     if use_formater:
-        stat[stat.select_dtypes(include=[float]).columns] = \
-            stat[stat.select_dtypes(include=[float]).columns].applymap(lambda x: '{0:.02f}'.format(x))
+        trans_col = stat.select_dtypes(include=[float]).columns
+        stat[trans_col] = stat[trans_col].applymap(lambda x: '{0:.02f}'.format(x))
     if not silent:
         print("Generate descriptive statistical summary, including missing count, missing rate,",
-              "\n coverage count, coverage rate, unique values count, high-frequency, value,",
+              "\n coverage count, coverage rate, unique values count, high-frequency value,",
               "high-frequency value's count, high-frequency value's\n probability of occurrence")
-        print('\n%s \n'&('_'*120))
+        print('\n%s \n'%('_'*120))
     return stat
 
 
 class DataFilter(object):
     """
-    Drop columns with number of unique values below defined threshold, columns with missing rates
-    above defined threshold and columns with a value of high frequency above defined threshold.
+    Drop columns having unique-value-counts below threshold, columns having missing rates
+    above threshold and columns having high-frequency-value above threshold.
     """
 
     def __init__(self,
@@ -153,9 +152,9 @@ class DataFilter(object):
         HF_value_thr: float
                 Threshold of high-frequency value's occurrence propability
         exclude_list: list
-                List of columns should be removed manually
+                List of columns removed manually
         silent: boolean
-                Restrict the print of filtering process
+                If True, restrict the print of filtering process
         """
         self.nunique_thr = nunique_thr
         self.missing_rate_thr = missing_rate_thr
@@ -172,29 +171,26 @@ class DataFilter(object):
         df: pd.DataFrame
                 The input dataframe
         """
-        stat = desc_stat(df, target=[], is_ratio_pct=False, use_formater=False)
+        df = na_detection(df)
+        stat = desc_stat(df, is_ratio_pct=False, use_formater=False)
         drop1 = stat[stat['unique_value_cnt'] < self.nunique_thr].index.tolist()
         drop2 = stat[stat['missing_rate'] > self.missing_rate_thr].index.tolist()
         drop3 = stat[stat['HF_value_pct'] > self.HF_value_thr].index.tolist()
         self.exclude_list = drop1 + drop2 + drop3 + self.exclude_list
-        stat['unique_value_cnt'] = stat['unique_value_cnt']
-        stat[['missing_rate', 'coverage_rate']] = \
-            stat[['missing_rate', 'coverage_rate']].applymap(lambda x: '{:.2f}%'.format(x * 100))
+        trans_col = ['missing_rate', 'coverage_rate']
+        stat[trans_col] = stat[trans_col].applymap(lambda x: '{:.2f}%'.format(x * 100))
         if not self.silent:
             print('Statistics of columns to be dropped \n')
             print(stat[['unique_value_cnt', 'missing_rate', 'HF_value_pct']].loc[drop1 + drop2 + drop3])
             print('\n%s \n'%('_ '*60))
-
             print('Missing rates of these columns exceed defined threshold: %f\n\n'%self.missing_rate_thr)
-            print('\n '.join(drop1))
+            print('\n'.join(drop1))
             print('\n%s \n'%('_ '*60))
-
             print('Unique values of these columns do not exceed defined threshold: %f\n\n'%self.nunique_thr)
-            print('\n '.join(drop2))
+            print('\n'.join(drop2))
             print('\n%s \n'%('_ '*60))
-
             print('Percentages of high-frequency-values of these columns exceed defined threshold: %f\n\n'%self.HF_value_thr)
-            print('\n '.join(drop3))
+            print('\n'.join(drop3))
             print('\n%s \n'%('_ '*60))
 
     def transform(self, df):
@@ -209,16 +205,17 @@ class DataFilter(object):
         Returns
         ----------
         df: pd.DataFrame
-                The dataframe of columns having been filtered
+                The dataframe of remaining columns
         """
         df = na_detection(df)
         try:
             df = df.drop(self.exclude_list, axis=1)
             if not self.silent:
                 print('Columns shown as below are dropped\n\n')
-                print('\n '.join(self.exclude_list))
+                print('\n'.join(self.exclude_list))
             return df.apply(pd.to_numeric, errors='ignore')
-        except:
+        except Exception as e:
+            print(e)
             raise ValueError("Some columns to drop are not in the dataframe")
 
     def fit_transform(self, df):
@@ -233,7 +230,7 @@ class DataFilter(object):
         Returns
         ----------
         df: pd.DataFrame
-                The dataframe of columns having been filtered
+                The dataframe of remaining columns
         """
         self.fit(df)
         return self.transform(df)
